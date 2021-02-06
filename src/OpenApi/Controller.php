@@ -1,10 +1,12 @@
 <?php namespace LaravelSwagger\OpenApi;
 
 /**
- * Class Server
+ * Class Controller
  * @package LaravelSwagger\OpenApi
  */
-class Server
+class Controller
 {
+
+    public string $name = '';
 
 }
