@@ -6,12 +6,81 @@
  */
 class Updater
 {
+    /**
+     * @var ApiDocIO
+     */
+    private ApiDocIO $apiDocIO;
+    /**
+     * @var ControllerParser
+     */
+    private ControllerParser $controllerParser;
+
+    /**
+     * @var ControllerWithRoutes[]
+     */
+    private array $routesByController = [];
+
+    /**
+     * Updater constructor.
+     * @param ControllerParser $controllerParser
+     * @param ApiDocIO $reader
+     */
+    public function __construct(ControllerParser $controllerParser, ApiDocIO $reader) {
+        $this->apiDocIO = $reader;
+        $this->controllerParser = $controllerParser;
+    }
 
     /**
      * @param DefinedRoute[] $definedRoutes
      */
     public function update(array $definedRoutes)
     {
+        $this->parseRoutes($definedRoutes);
+        $this->updateControllers();
     }
+
+    /**
+     * @param DefinedRoute[] $definedRoutes
+     */
+    private function parseRoutes(array $definedRoutes)
+    {
+        foreach($definedRoutes as $definedRoute) {
+            $controller = $this->controllerParser->parse( $definedRoute->controller );
+
+            $this->addController($controller, $definedRoute);
+        }
+    }
+
+    private function updateControllers()
+    {
+        foreach($this->routesByController as $routesByController) {
+            $this->updateController($routesByController);
+        }
+    }
+
+    private function addController(Controller $controller, DefinedRoute $definedRoute)
+    {
+        $controllerWithRoutes = $this->createOrGet($controller);
+        $controllerWithRoutes->routes[] = $definedRoute;
+    }
+
+    private function updateController(ControllerWithRoutes $controllerWithRoutes)
+    {
+        $this->apiDocIO->update($controllerWithRoutes->controller->apiDocPath, function() {
+        });
+    }
+
+    private function createOrGet(Controller $controller): ControllerWithRoutes
+    {
+        $key = $controller->getKey();
+
+        $notPresent = !array_key_exists($key, $this->routesByController);
+        if($notPresent) {
+            $this->routesByController[$key] = ControllerWithRoutes::fromController($controller);
+        }
+
+        return $this->routesByController[$key];
+    }
+
 
 }

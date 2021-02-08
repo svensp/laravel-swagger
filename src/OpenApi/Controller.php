@@ -7,6 +7,13 @@
 class Controller
 {
 
-    public string $name = '';
+    public string $path = '';
+
+    public string $apiDocPath = '';
+
+    public function getKey()
+    {
+        return $this->path;
+    }
 
 }
