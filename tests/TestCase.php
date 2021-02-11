@@ -1,6 +1,7 @@
 <?php namespace LaravelSwaggerTest;
 
 use Faker\Factory;
+use Illuminate\Support\Arr;
 use Mockery;
 
 /**
@@ -29,6 +30,16 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         return $this->callback(function($parameter) {
             return is_callable($parameter);
         });
+    }
+
+    protected function assertArrayHas($expectedKey, $array)
+    {
+        $this->assertTrue( Arr::has($array, $expectedKey), "Array does not have expected key $expectedKey" );
+    }
+
+    protected function assertArrayEquals($expectedValue, $expectedKey, $array)
+    {
+        $this->assertEquals($expectedValue, Arr::get($array, $expectedKey), "Array does not have expected key $expectedKey" );
     }
 
 }

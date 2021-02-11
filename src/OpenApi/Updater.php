@@ -1,5 +1,7 @@
 <?php namespace LaravelSwagger\OpenApi;
 
+use Illuminate\Support\Arr;
+
 /**
  * Class Updater
  * @package LaravelSwagger\OpenApi
@@ -66,8 +68,21 @@ class Updater
 
     private function updateController(ControllerWithRoutes $controllerWithRoutes)
     {
-        $this->apiDocIO->update($controllerWithRoutes->controller->apiDocPath, function() {
+        $this->apiDocIO->update($controllerWithRoutes->controller->apiDocPath, function($openApiSpecification) {
+
+            $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
+            $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
+            $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
+            $this->setIfNotPresent($openApiSpecification, 'paths', []);
+
+            return $openApiSpecification;
         });
+    }
+
+    private function setIfNotPresent(&$array, $key, $defaultValue)
+    {
+        $value = Arr::get($array, $key, $defaultValue);
+        Arr::set($array, $key, $value);
     }
 
     private function createOrGet(Controller $controller): ControllerWithRoutes
@@ -81,6 +96,5 @@ class Updater
 
         return $this->routesByController[$key];
     }
-
 
 }
