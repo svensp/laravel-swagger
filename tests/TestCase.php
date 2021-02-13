@@ -12,10 +12,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 {
     protected \Faker\Generator $faker;
 
-    public function setUp() : void {
-    	parent::setUp();
-    	$this->faker = Factory::create();
-    	\Hamcrest\Util::registerGlobalFunctions();
+    public function setUp() : void
+    {
+        parent::setUp();
+        $this->faker = Factory::create();
+        \Hamcrest\Util::registerGlobalFunctions();
     }
 
     protected function mockAndRegisterInstance(string $classPath)
@@ -27,19 +28,22 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
 
     protected function isCallable()
     {
-        return $this->callback(function($parameter) {
+        return $this->callback(function ($parameter) {
             return is_callable($parameter);
         });
     }
 
     protected function assertArrayHas($expectedKey, $array)
     {
-        $this->assertTrue( Arr::has($array, $expectedKey), "Array does not have expected key $expectedKey" );
+        $this->assertTrue(Arr::has($array, $expectedKey), "Array does not have expected key $expectedKey");
     }
 
     protected function assertArrayEquals($expectedValue, $expectedKey, $array)
     {
-        $this->assertEquals($expectedValue, Arr::get($array, $expectedKey), "Array does not have expected key $expectedKey" );
+        $this->assertEquals(
+            $expectedValue,
+            Arr::get($array, $expectedKey),
+            "Array does not have expected key $expectedKey"
+        );
     }
-
 }

@@ -20,5 +20,4 @@ class ControllerWithRoutes
         $instance->controller = $controller;
         return $instance;
     }
-
 }

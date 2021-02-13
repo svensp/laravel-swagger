@@ -27,7 +27,8 @@ class Updater
      * @param ControllerParser $controllerParser
      * @param ApiDocIO $reader
      */
-    public function __construct(ControllerParser $controllerParser, ApiDocIO $reader) {
+    public function __construct(ControllerParser $controllerParser, ApiDocIO $reader)
+    {
         $this->apiDocIO = $reader;
         $this->controllerParser = $controllerParser;
     }
@@ -46,8 +47,8 @@ class Updater
      */
     private function parseRoutes(array $definedRoutes)
     {
-        foreach($definedRoutes as $definedRoute) {
-            $controller = $this->controllerParser->parse( $definedRoute->controller );
+        foreach ($definedRoutes as $definedRoute) {
+            $controller = $this->controllerParser->parse($definedRoute->controller);
 
             $this->addController($controller, $definedRoute);
         }
@@ -55,7 +56,7 @@ class Updater
 
     private function updateControllers()
     {
-        foreach($this->routesByController as $routesByController) {
+        foreach ($this->routesByController as $routesByController) {
             $this->updateController($routesByController);
         }
     }
@@ -69,21 +70,23 @@ class Updater
     private function updateController(ControllerWithRoutes $controllerWithRoutes)
     {
         $this->apiDocIO->update(
-            $controllerWithRoutes->controller->apiDocPath, function($openApiSpecification) use ($controllerWithRoutes) {
+            $controllerWithRoutes->controller->apiDocPath,
+            function ($openApiSpecification) use ($controllerWithRoutes) {
 
-            $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
-            $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
-            $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
-            $this->setIfNotPresent($openApiSpecification, 'paths', []);
+                $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
+                $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
+                $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
+                $this->setIfNotPresent($openApiSpecification, 'paths', []);
 
-            foreach($controllerWithRoutes->routes as $route) {
-                $path = $route->path;
-                $method = $route->getMethodName();
-                $this->setIfNotPresent($openApiSpecification, "paths.{$path}.{$method}", []);
+                foreach ($controllerWithRoutes->routes as $route) {
+                    $path = $route->path;
+                    $method = $route->getMethodName();
+                    $this->setIfNotPresent($openApiSpecification, "paths.{$path}.{$method}", []);
+                }
+
+                return $openApiSpecification;
             }
-
-            return $openApiSpecification;
-        });
+        );
     }
 
     private function setIfNotPresent(&$array, $key, $defaultValue)
@@ -97,11 +100,10 @@ class Updater
         $key = $controller->getKey();
 
         $notPresent = !array_key_exists($key, $this->routesByController);
-        if($notPresent) {
+        if ($notPresent) {
             $this->routesByController[$key] = ControllerWithRoutes::fromController($controller);
         }
 
         return $this->routesByController[$key];
     }
-
 }

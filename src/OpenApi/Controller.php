@@ -15,5 +15,4 @@ class Controller
     {
         return $this->path;
     }
-
 }

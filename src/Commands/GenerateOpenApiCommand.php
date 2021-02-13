@@ -110,5 +110,4 @@ class GenerateOpenApiCommand extends Command
         return [
         ];
     }
-
 }

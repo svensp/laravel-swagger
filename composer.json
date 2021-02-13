@@ -9,6 +9,15 @@
             "email": "cmd-keen@specky.de"
         }
     ],
+  "scripts": {
+    "codestyle": [
+      "vendor/bin/phpcs --standard=PSR2 --extensions=php src && vendor/bin/phpcs --standard=tests/.codestyle.xml --extensions=php tests"
+    ],
+    "fixstyle": [
+      "vendor/bin/phpcbf --standard=PSR2 --extensions=php src ; vendor/bin/phpcbf --standard=tests/.codestyle.xml --extensions=php tests"
+    ]
+
+  },
     "autoload": {
       "psr-4": {
         "LaravelSwagger\\": "src/"
@@ -40,6 +49,7 @@
         "phpunit/phpunit": "^9.5",
         "mockery/mockery": "^1.4",
         "orchestra/testbench": "^6.11",
-        "hamcrest/hamcrest-php": "^2.0"
+        "hamcrest/hamcrest-php": "^2.0",
+        "squizlabs/php_codesniffer": "^3.5"
     }
 }

@@ -19,5 +19,4 @@ class LaravelSwaggerProvider extends \Illuminate\Support\ServiceProvider
             ]);
         }
     }
-
 }

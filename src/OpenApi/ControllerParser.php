@@ -8,5 +8,4 @@ interface ControllerParser
 {
 
     public function parse(string $classPath) : Controller;
-
 }
