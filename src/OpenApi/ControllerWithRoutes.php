@@ -9,6 +9,9 @@ class ControllerWithRoutes
 
     public Controller $controller;
 
+    /**
+     * @var DefinedRoute[] $routes
+     */
     public array $routes = [];
 
     public static function fromController(Controller $controller)

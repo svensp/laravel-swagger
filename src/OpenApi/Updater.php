@@ -68,12 +68,19 @@ class Updater
 
     private function updateController(ControllerWithRoutes $controllerWithRoutes)
     {
-        $this->apiDocIO->update($controllerWithRoutes->controller->apiDocPath, function($openApiSpecification) {
+        $this->apiDocIO->update(
+            $controllerWithRoutes->controller->apiDocPath, function($openApiSpecification) use ($controllerWithRoutes) {
 
             $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
             $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
             $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
             $this->setIfNotPresent($openApiSpecification, 'paths', []);
+
+            foreach($controllerWithRoutes->routes as $route) {
+                $path = $route->path;
+                $method = $route->getMethodName();
+                $this->setIfNotPresent($openApiSpecification, "paths.{$path}.{$method}", []);
+            }
 
             return $openApiSpecification;
         });

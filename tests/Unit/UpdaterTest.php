@@ -47,7 +47,7 @@ class UpdaterTest extends TestCase
      */
     public function looks_for_open_api_yaml_specified_in_controller($apiDocPath)
     {
-        $this->withRouteAndMatchingController('TestController', $apiDocPath);
+        $this->withRouteAndMatchingController($apiDocPath);
 
         $this->updateWithDefinedRoutes();
 
@@ -84,6 +84,8 @@ class UpdaterTest extends TestCase
      */
     public function empty_api_doc_json_creates_file_from_template($apiDocPath)
     {
+        $this->withRouteAndMatchingController($apiDocPath);
+
         $this->updateAndAssertResult($apiDocPath, [], function($resultApiDoc) {
             $this->assertArrayHas('openapi', $resultApiDoc);
             $this->assertArrayHas('info.title', $resultApiDoc);
@@ -99,12 +101,15 @@ class UpdaterTest extends TestCase
      */
     public function api_doc_json_keeps_existing_values($apiDocPath)
     {
+        $this->withRouteAndMatchingController($apiDocPath);
+
         $this->updateAndAssertResult($apiDocPath, [
             'openapi' => '1.0.0',
             'info' => [
                 'title' => 'titletest',
                 'version' => '0.0.1',
             ],
+            'new' => 'exists',
             'paths' => [
                 '/kekse' => [
                     'post' => [
@@ -117,30 +122,48 @@ class UpdaterTest extends TestCase
             $this->assertArrayEquals('titletest', 'info.title', $resultApiDoc);
             $this->assertArrayEquals('0.0.1', 'info.version', $resultApiDoc);
             $this->assertArrayEquals('hi', 'paths./kekse.post.title', $resultApiDoc);
+            $this->assertArrayEquals('exists', 'new', $resultApiDoc);
+        });
+    }
+
+    /**
+     * @test
+     * @dataProvider apiDocPathMethods
+     * @param $apiDocPath
+     */
+    public function api_doc_creates_routes_for_all_methods($apiDocPath, $methodSetter, $openApiMethodName)
+    {
+        $this->withRouteAndMatchingController($apiDocPath, function(DefinedRoute $route) use ($methodSetter) {
+            $route->controller = 'TestController';
+            $route->path = '/user/{user_id}';
+            $methodSetter($route);
+        });
+
+        $this->updateAndAssertResult($apiDocPath, [], function($resultApiDoc) use ($openApiMethodName) {
+            $this->assertArrayHas("paths./user/{user_id}.{$openApiMethodName}", $resultApiDoc);
         });
     }
 
     private function updateAndAssertResult($apiDocPath, array $startData, callable $assertions)
     {
-        $this->withRouteAndMatchingController('TestController', $apiDocPath);
-
         $this->updateWithDefinedRoutes();
 
         $this->assertApiDocUpdateResult($apiDocPath, $startData, $assertions);
-
     }
 
-    private function withRouteAndMatchingController($controllerClassPath, $apiDocPath)
+    private function withRouteAndMatchingController($apiDocPath, callable $modifier = null)
     {
-        $this->withDefinedRoute(function(DefinedRoute $route) use ($controllerClassPath) {
+        $controllerClassPath = 'TestController';
+        $modifier ??= function() {};
+
+        $this->withDefinedRoute(function(DefinedRoute $route) use ($controllerClassPath, $modifier) {
             $route->controller = $controllerClassPath;
+            $modifier($route);
         });
 
         $this->withController($controllerClassPath, function(Controller $controller) use ($apiDocPath) {
             $controller->apiDocPath = $apiDocPath;
         });
-
-
     }
 
     private function withDefinedRoute(\Closure $modifier)
@@ -201,6 +224,18 @@ class UpdaterTest extends TestCase
             [ '@Module/api-doc.yml' ]
         ];
 
+    }
+
+    public function apiDocPathMethods()
+    {
+        return [
+            [ '@Core/api-doc.yml', function(DefinedRoute $route) { $route->setMethodGet(); }, 'get' ],
+            [ '@cookies/api-doc.yml', function(DefinedRoute $route) { $route->setMethodPost(); }, 'post'  ],
+            [ '@Module/api-doc.yml', function(DefinedRoute $route) { $route->setMethodPut(); }, 'put'  ],
+            [ '@Lib/api-doc.yml', function(DefinedRoute $route) { $route->setMethodPatch(); }, 'patch'  ],
+            [ '@Vendor/api-doc.yml', function(DefinedRoute $route) { $route->setMethodDelete(); }, 'delete'  ],
+            [ '@Doink/api-doc.yml', function(DefinedRoute $route) { $route->setMethodOptions(); }, 'options'  ],
+        ];
     }
 
 
