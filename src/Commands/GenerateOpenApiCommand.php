@@ -5,9 +5,8 @@ namespace LaravelSwagger\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Symfony\Component\Console\Input\InputOption;
+use LaravelSwagger\OpenApi\DefinedRoute;
+use LaravelSwagger\OpenApi\Updater;
 
 /**
  * Class GenerateOpenApiCommand
@@ -52,25 +51,33 @@ class GenerateOpenApiCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return void
+     * @param Updater $updater
      */
-    public function handle()
+    public function handle(Updater $updater)
     {
         $routes = $this->getRoutes();
 
-        $this->displayRoutes($routes);
+        $updater->update($routes);
     }
 
     /**
      * Compile the routes into a displayable format.
      *
-     * @return array
+     * @return DefinedRoute[]
      */
-    protected function getRoutes()
+    protected function getRoutes() : array
     {
-        return collect($this->router->getRoutes())->map(function ($route) {
-            return $this->getRouteInformation($route);
-        })->filter()->all();
+        return collect($this->router->getRoutes())
+            ->filter(function ($route) {
+                return $this->isControllerRoute($route);
+            })->map(function ($route) {
+                return $this->getRouteInformation($route);
+            })->all();
+    }
+
+    private function isControllerRoute(Route $route) : bool
+    {
+        return array_key_exists('controller', $route->action);
     }
 
     /**
@@ -79,35 +86,15 @@ class GenerateOpenApiCommand extends Command
      * @param  \Illuminate\Routing\Route  $route
      * @return array
      */
-    protected function getRouteInformation(Route $route)
+    protected function getRouteInformation(Route $route) : DefinedRoute
     {
-        return [
-            'domain' => $route->domain(),
-            'method' => implode('|', $route->methods()),
-            'uri'    => $route->uri(),
-            'name'   => $route->getName(),
-            'action' => ltrim($route->getActionName(), '\\'),
-        ];
+        $controller = $this->parseController($route);
+
+        return DefinedRoute::fromControllerAndPath($controller, $route->uri());
     }
 
-    /**
-     * Display the route information on the console.
-     *
-     * @param  array  $routes
-     * @return void
-     */
-    protected function displayRoutes(array $routes)
+    private function parseController(Route $route)
     {
-    }
-
-    /**
-     * Get the console command options.
-     *
-     * @return array
-     */
-    protected function getOptions()
-    {
-        return [
-        ];
+        return $route->action['controller'];
     }
 }

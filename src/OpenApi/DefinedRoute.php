@@ -13,6 +13,14 @@ class DefinedRoute
 
     protected string $method = self::METHOD_GET;
 
+    public static function fromControllerAndPath(string $controller, string $path)
+    {
+        $definedRoute = new self;
+        $definedRoute->controller = $controller;
+        $definedRoute->path = $path;
+        return $definedRoute;
+    }
+
     const METHOD_GET = 'get';
     const METHOD_POST = 'post';
     const METHOD_PUT = 'put';
