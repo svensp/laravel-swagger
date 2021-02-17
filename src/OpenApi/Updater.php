@@ -81,7 +81,9 @@ class Updater
                 foreach ($controllerWithRoutes->routes as $route) {
                     $path = $route->path;
                     $method = $route->getMethodName();
-                    $this->setIfNotPresent($openApiSpecification, "paths.{$path}.{$method}", []);
+
+                    $basePath = "paths.{$path}.{$method}";
+                    $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
                 }
 
                 return $openApiSpecification;

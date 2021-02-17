@@ -144,7 +144,7 @@ class UpdaterTest extends TestCase
             $this->assertArrayHas("paths./user/{user_id}.{$openApiMethodName}", $resultApiDoc);
             $this->assertArrayEquals(
                 'TODO: Summary',
-                "paths./user/{user_id}.{$openApiMethodName}.",
+                "paths./user/{user_id}.{$openApiMethodName}.summary",
                 $resultApiDoc
             );
         });
