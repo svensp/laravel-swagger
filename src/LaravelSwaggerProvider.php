@@ -10,11 +10,22 @@ use LaravelSwagger\Commands\GenerateOpenApiCommand;
 class LaravelSwaggerProvider extends \Illuminate\Support\ServiceProvider
 {
 
+    protected string $packageConfigFile = __DIR__ . '/../config/open-api.php';
+
+    public function register()
+    {
+        $this->setDefaultConfig();
+    }
+
     public function boot()
     {
-
         $this->registerCommands();
         $this->registerPublishedFFiles();
+    }
+
+    private function setDefaultConfig()
+    {
+        $this->mergeConfigFrom($this->packageConfigFile, 'open-api');
     }
 
     private function registerCommands(): void
@@ -29,7 +40,7 @@ class LaravelSwaggerProvider extends \Illuminate\Support\ServiceProvider
     private function registerPublishedFFiles(): void
     {
         $this->publishes([
-            __DIR__ . '/../config/open-api.php' => config_path('open-api.php'),
+            $this->packageConfigFile => config_path('open-api.php'),
         ]);
     }
 }
