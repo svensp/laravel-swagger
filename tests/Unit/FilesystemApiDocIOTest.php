@@ -64,12 +64,12 @@ class FilesystemApiDocIOTest extends TestCase
 
         $this->apiDocIO->setAlias('@', __DIR__.'/data');
 
-        $this->apiDocIO->update('@/test.yml', function($previousData) {
+        $this->apiDocIO->update('@/test.yml', function ($previousData) {
             $previousData['was-run'] = 'run';
             return $previousData;
         });
 
-        $this->assertFileUpdated(__DIR__.'/data/test.yml', function($data) {
+        $this->assertFileYamlContent(__DIR__.'/data/test.yml', function ($data) {
             $this->assertArrayHas('was-run', $data);
             $this->assertArrayEquals('run', 'was-run', $data);
         });
@@ -82,14 +82,14 @@ class FilesystemApiDocIOTest extends TestCase
     {
         $this->prepareFile(__DIR__.'/data/test.yml');
 
-        $this->apiDocIO->update(__DIR__.'/data/test.yml', function($previousData) {
+        $this->apiDocIO->update(__DIR__.'/data/test.yml', function ($previousData) {
             $previousData['was-run'] = 'run';
             return $previousData;
         });
 
-        $this->assertFileUpdated(__DIR__.'/data/test.yml', function($data) {
-            $this->assertArrayHas('was-run', $data);
-            $this->assertArrayEquals('run', 'was-run', $data);
+        $this->assertFileYamlContent(__DIR__.'/data/test.yml', function ($content) {
+            $this->assertArrayHas('was-run', $content);
+            $this->assertArrayEquals('run', 'was-run', $content);
         });
     }
 
@@ -103,7 +103,7 @@ class FilesystemApiDocIOTest extends TestCase
         $this->assertTrue($called);
     }
 
-    private function assertFileUpdated($path, callable $asserts)
+    private function assertFileYamlContent($path, callable $asserts)
     {
         $resultData = Yaml::parse(file_get_contents($path));
         $asserts($resultData);
