@@ -60,16 +60,16 @@ class FilesystemApiDocIOTest extends TestCase
      */
     public function update_via_alias_updates_correct_file()
     {
-        $this->prepareFile(__DIR__.'/data/test.yml');
+        $this->removeFileIfPresent(__DIR__.'/data/empty.yml');
 
         $this->apiDocIO->setAlias('@', __DIR__.'/data');
 
-        $this->apiDocIO->update('@/test.yml', function ($previousData) {
+        $this->apiDocIO->update('@/empty.yml', function ($previousData) {
             $previousData['was-run'] = 'run';
             return $previousData;
         });
 
-        $this->assertFileYamlContent(__DIR__.'/data/test.yml', function ($data) {
+        $this->assertFileYamlContent(__DIR__.'/data/empty.yml', function ($data) {
             $this->assertArrayHas('was-run', $data);
             $this->assertArrayEquals('run', 'was-run', $data);
         });
@@ -119,5 +119,12 @@ class FilesystemApiDocIOTest extends TestCase
     private function prepareFile(string $path)
     {
         copy(__DIR__.'/data/template.yml', $path);
+    }
+
+    private function removeFileIfPresent(string $filePath)
+    {
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
     }
 }

@@ -45,6 +45,10 @@ class FileSystemApiDocIO implements ApiDocIO
     private function readYamlContentFromFile()
     {
         $pathWithAliasesResolved = $this->applyAliases($this->pathToRead);
+        if (!file_exists($pathWithAliasesResolved)) {
+            throw new ReadFailedException();
+        }
+
         $yamlContent = file_get_contents($pathWithAliasesResolved);
         if ($yamlContent === false) {
             throw new ReadFailedException();
@@ -54,7 +58,13 @@ class FileSystemApiDocIO implements ApiDocIO
 
     private function parseYaml(): array
     {
-        return Yaml::parse($this->yamlContent);
+        $content =  Yaml::parse($this->yamlContent);
+
+        if(!is_array($content)) {
+            throw new ReadFailedException();
+        }
+
+        return $content;
     }
 
     private function convertToYaml($data)
