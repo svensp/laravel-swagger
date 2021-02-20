@@ -4,6 +4,7 @@ use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\Controller;
 use LaravelSwagger\OpenApi\ControllerParser;
 use LaravelSwagger\OpenApi\DefinedRoute;
+use LaravelSwagger\OpenApi\NoApiDocSpecifiedException;
 use LaravelSwagger\OpenApi\Updater;
 use LaravelSwaggerTest\TestCase;
 use Mockery\MockInterface;
@@ -150,6 +151,43 @@ class UpdaterTest extends TestCase
         });
     }
 
+    /**
+     * @test
+     */
+    public function ignores_routes_without_apidocs()
+    {
+        $this->withRouteAndControllerWithoutApiDoc();
+
+        $this->updateWithDefinedRoutes();
+
+        $this->assertNoApiDocUpdate();
+    }
+
+    /**
+     * @test
+     */
+    public function controller_without_apidoc_call_hook()
+    {
+        $this->withRouteAndControllerWithoutApiDoc();
+
+        $called = false;
+        $this->updater->onControlledWithoutApidoc(function () use (&$called) {
+            $called = true;
+        });
+        $this->updateWithDefinedRoutes();
+
+        $this->assertTrue($called);
+    }
+
+    private function withRouteAndControllerWithoutApiDoc()
+    {
+        $this->withDefinedRoute(function (DefinedRoute $route) {
+            $route->controller = 'ControllerWithoutApiDoc';
+        });
+
+        $this->controllerParser->shouldReceive('parse')->andThrow(new NoApiDocSpecifiedException());
+    }
+
     private function updateAndAssertResult($apiDocPath, array $startData, callable $assertions)
     {
         $this->updateWithDefinedRoutes();
@@ -222,6 +260,11 @@ class UpdaterTest extends TestCase
                 $assertions($resultData);
                 return true;
             });
+    }
+
+    private function assertNoApiDocUpdate()
+    {
+        $this->apiDocReader->shouldNotHaveReceived('update');
     }
 
     public function apiDocPaths() : array

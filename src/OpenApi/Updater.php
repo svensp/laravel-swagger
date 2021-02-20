@@ -23,6 +23,11 @@ class Updater
     private array $routesByController = [];
 
     /**
+     * @var callable
+     */
+    private $controllerWithoutApidocHook;
+
+    /**
      * Updater constructor.
      * @param ControllerParser $controllerParser
      * @param ApiDocIO $reader
@@ -31,6 +36,13 @@ class Updater
     {
         $this->apiDocIO = $reader;
         $this->controllerParser = $controllerParser;
+        $this->controllerWithoutApidocHook = function () {
+        };
+    }
+
+    public function onControlledWithoutApidoc(callable $do)
+    {
+        $this->controllerWithoutApidocHook = $do;
     }
 
     /**
@@ -48,7 +60,13 @@ class Updater
     private function parseRoutes(array $definedRoutes)
     {
         foreach ($definedRoutes as $definedRoute) {
-            $controller = $this->controllerParser->parse($definedRoute->controller);
+            try {
+                $controller = $this->controllerParser->parse($definedRoute->controller);
+            } catch (NoApiDocSpecifiedException $e) {
+                $controlledWithoutApidocHook = $this->controllerWithoutApidocHook;
+                $controlledWithoutApidocHook($definedRoute);
+                continue;
+            }
 
             $this->addController($controller, $definedRoute);
         }

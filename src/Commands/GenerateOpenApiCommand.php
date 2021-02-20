@@ -57,6 +57,9 @@ class GenerateOpenApiCommand extends Command
     {
         $routes = $this->getRoutes();
 
+        $updater->onControlledWithoutApidoc(function (DefinedRoute $definedRoute) {
+            $this->warn("Skipped {$definedRoute->controller} - no apidoc defined");
+        });
         $updater->update($routes);
     }
 
