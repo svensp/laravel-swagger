@@ -98,6 +98,7 @@ class GenerateOpenApiCommand extends Command
 
     private function parseController(Route $route)
     {
-        return $route->action['controller'];
+        list($controller) = explode('@', $route->action['controller']);
+        return $controller;
     }
 }
