@@ -5,7 +5,10 @@ namespace LaravelSwagger;
 use Illuminate\Support\Facades\Config;
 use LaravelSwagger\Commands\GenerateOpenApiCommand;
 use LaravelSwagger\Filesystem\FileSystemApiDocIO;
+use LaravelSwagger\OpenApi\ApiDocIO;
+use LaravelSwagger\OpenApi\ControllerParser;
 use LaravelSwagger\OpenApi\Updater;
+use LaravelSwagger\PHPDoc\PHPDocControllerParser;
 
 /**
  * Class Provider
@@ -22,6 +25,7 @@ class LaravelSwaggerProvider extends \Illuminate\Support\ServiceProvider
 
     public function boot()
     {
+        $this->registerImplementations();
         $this->registerCommands();
         $this->registerPublishedFiles();
         $this->passConfigSettingsToUpdater();
@@ -30,6 +34,12 @@ class LaravelSwaggerProvider extends \Illuminate\Support\ServiceProvider
     private function setDefaultConfig()
     {
         $this->mergeConfigFrom($this->packageConfigFile, 'open-api');
+    }
+
+    private function registerImplementations()
+    {
+        $this->app->bind(ApiDocIO::class, FileSystemApiDocIO::class);
+        $this->app->bind(ControllerParser::class, PHPDocControllerParser::class);
     }
 
     private function registerCommands(): void
