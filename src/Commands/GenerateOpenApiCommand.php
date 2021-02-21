@@ -112,10 +112,16 @@ class GenerateOpenApiCommand extends Command
         }
 
         $this->warn("Skipped {$definedRoute->controller} - no apidoc defined");
+        $this->rememberWarnedForController($controller);
     }
 
     private function hasWarnedForController($controller)
     {
         return array_key_exists($controller, $this->skippedControllers) ;
+    }
+
+    private function rememberWarnedForController(string $controller)
+    {
+        $this->skippedControllers[] = $controller;
     }
 }
