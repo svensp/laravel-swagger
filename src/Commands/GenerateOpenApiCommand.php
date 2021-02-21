@@ -35,6 +35,8 @@ class GenerateOpenApiCommand extends Command
      */
     protected $router;
 
+    private array $skippedControllers = [];
+
     /**
      * Create a new route command instance.
      *
@@ -58,7 +60,7 @@ class GenerateOpenApiCommand extends Command
         $routes = $this->getRoutes();
 
         $updater->onControlledWithoutApidoc(function (DefinedRoute $definedRoute) {
-            $this->warn("Skipped {$definedRoute->controller} - no apidoc defined");
+            $this->warnSkippedNoApidoc($definedRoute);
         });
         $updater->update($routes);
     }
@@ -100,5 +102,20 @@ class GenerateOpenApiCommand extends Command
     {
         list($controller) = explode('@', $route->action['controller']);
         return $controller;
+    }
+
+    private function warnSkippedNoApidoc(DefinedRoute $definedRoute)
+    {
+        $controller = $definedRoute->controller;
+        if ($this->hasWarnedForController($controller)) {
+            return;
+        }
+
+        $this->warn("Skipped {$definedRoute->controller} - no apidoc defined");
+    }
+
+    private function hasWarnedForController($controller)
+    {
+        return array_key_exists($controller, $this->skippedControllers) ;
     }
 }
