@@ -122,6 +122,6 @@ class GenerateOpenApiCommand extends Command
 
     private function rememberWarnedForController(string $controller)
     {
-        $this->skippedControllers[] = $controller;
+        $this->skippedControllers[$controller] = true;
     }
 }
