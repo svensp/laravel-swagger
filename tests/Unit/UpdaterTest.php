@@ -140,6 +140,7 @@ class UpdaterTest extends TestCase
         $this->withRouteAndMatchingController($apiDocPath, function (DefinedRoute $route) use ($laravelMethodName) {
             $route->controller = 'TestController';
             $route->path = '/user/{user_id}';
+            $route->name = 'getUser';
             $route->parameters = [
                 DefinedParameter::fromName('user_id')
             ];
@@ -148,6 +149,11 @@ class UpdaterTest extends TestCase
 
         $this->updateAndAssertResult($apiDocPath, [], function ($resultApiDoc) use ($openApiMethodName) {
             $this->assertArrayHas("paths./user/{user_id}.{$openApiMethodName}", $resultApiDoc);
+            $this->assertArrayEquals(
+                'getUser',
+                "paths./user/{user_id}.{$openApiMethodName}.operationId",
+                $resultApiDoc
+            );
             $this->assertArrayEquals(
                 'TODO: Summary',
                 "paths./user/{user_id}.{$openApiMethodName}.summary",

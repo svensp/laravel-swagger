@@ -18,6 +18,8 @@ class DefinedRoute
      */
     public array $parameters = [];
 
+    public  string $name = '';
+
     protected function __construct()
     {
         $this->method = Method::get();

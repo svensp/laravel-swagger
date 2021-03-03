@@ -162,6 +162,10 @@ class Updater
         foreach ($controllerWithRoutes->routes as $route) {
             $basePath = $this->basePathFromRoute($route);
 
+            $hasName = !empty($route->name);
+            if ($hasName) {
+                $this->setIfNotPresent($openApiSpecification, "$basePath.operationId", $route->name);
+            }
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
 
             $openApiSpecification = $this->setParametersForRoute($route, $openApiSpecification);
