@@ -4,6 +4,7 @@ use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\Controller;
 use LaravelSwagger\OpenApi\ControllerParser;
 use LaravelSwagger\OpenApi\DefinedRoute;
+use LaravelSwagger\OpenApi\FoundRoute;
 use LaravelSwagger\OpenApi\NoApiDocSpecifiedException;
 use LaravelSwagger\OpenApi\Updater;
 use LaravelSwaggerTest\TestCase;
@@ -133,12 +134,12 @@ class UpdaterTest extends TestCase
      * @dataProvider apiDocPathMethods
      * @param $apiDocPath
      */
-    public function api_doc_creates_routes_for_all_methods($apiDocPath, $methodSetter, $openApiMethodName)
+    public function api_doc_creates_routes_for_all_methods($apiDocPath, $laravelMethodName, $openApiMethodName)
     {
-        $this->withRouteAndMatchingController($apiDocPath, function (DefinedRoute $route) use ($methodSetter) {
+        $this->withRouteAndMatchingController($apiDocPath, function (DefinedRoute $route) use ($laravelMethodName) {
             $route->controller = 'TestController';
             $route->path = '/user/{user_id}';
-            $methodSetter($route);
+            $route->setMethodFromLaravelName($laravelMethodName);
         });
 
         $this->updateAndAssertResult($apiDocPath, [], function ($resultApiDoc) use ($openApiMethodName) {
@@ -171,12 +172,77 @@ class UpdaterTest extends TestCase
         $this->withRouteAndControllerWithoutApiDoc();
 
         $called = false;
-        $this->updater->onControlledWithoutApidoc(function () use (&$called) {
+        $this->updater->onControllerWithoutApidoc(function () use (&$called) {
             $called = true;
         });
         $this->updateWithDefinedRoutes();
 
         $this->assertTrue($called);
+    }
+
+
+    /**
+     * @test
+     * @dataProvider  dataNoLongerPresentMethods
+     */
+    public function routes_which_are_no_longer_present_cause_alert($method, $assertMethod)
+    {
+        $this->withRouteAndMatchingController('@/api-doc.yml', function (DefinedRoute $route) use ($method) {
+            $route->path = '/test';
+            $route->setMethodFromLaravelName($method);
+        });
+
+        $hookRan = false;
+        $this->updater->onUnknownRoute(
+            function (string $apiDocPath, FoundRoute $foundRoute) use (&$hookRan, $assertMethod) {
+                $this->assertEquals('@/api-doc.yml', $apiDocPath, "api-doc.ylm path did not match");
+                $this->assertTrue(
+                    $foundRoute->isPath('/does-not-exist'),
+                    "Path was not expected /does-not-exist"
+                );
+                $assertMethod($foundRoute);
+                $hookRan = true;
+            }
+        );
+
+        $this->updateWithDefinedRoutesAndRun('@/api-doc.yml', [
+            'paths' => [
+                '/test' => [
+                    $method => [
+                    ]
+                ],
+                '/does-not-exist' => [
+                    $method => [
+                    ]
+                ]
+            ]
+        ]);
+
+        $this->assertTrue($hookRan, 'Unknown route hook was not triggered despite one being present');
+    }
+
+    public function dataNoLongerPresentMethods()
+    {
+        return [
+            [ 'get', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isGet());
+            } ],
+            [ 'post', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isPost());
+            } ],
+            [ 'put', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isPut());
+            } ],
+            [ 'patch', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isPatch());
+            } ],
+            [ 'delete', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isDelete());
+            } ],
+            [ 'options', function (FoundRoute $foundRoute) {
+                $this->assertTrue($foundRoute->isOptions());
+            } ],
+        ];
     }
 
     private function withRouteAndControllerWithoutApiDoc()
@@ -213,16 +279,16 @@ class UpdaterTest extends TestCase
 
     private function withDefinedRoute(\Closure $modifier)
     {
-        $route = new DefinedRoute();
-        $route->controller = $this->faker->randomElement([
+        $controller = $this->faker->randomElement([
             'Controller',
             'Test',
         ]);
-        $route->path = $this->faker->randomElement([
+        $path = $this->faker->randomElement([
             '@Core/api-docs.yml',
             '@End/api-docs.yml',
             '@Cookies/api-docs.yml',
         ]);
+        $route = DefinedRoute::fromControllerAndPath($controller, $path);
         $modifier($route);
         $this->routes[] = $route;
     }
@@ -243,21 +309,46 @@ class UpdaterTest extends TestCase
         $this->updater->update($this->routes);
     }
 
-    private function assertApiDocUpdated(string $docPath)
+    private function updateWithDefinedRoutesAndRun($expectedApiDocPath, $startData)
     {
-        $this->apiDocReader->shouldHaveReceived()->update($docPath, callableValue())->once();
-    }
-
-    private function assertApiDocUpdateResult($expectedApiDocPath, array $startData, callable $assertions)
-    {
-        $this->apiDocReader->shouldHaveReceived('update')
-            ->withArgs(function ($apiDocPath, $callable) use ($expectedApiDocPath, $startData, $assertions) {
+        $this->apiDocReader->shouldReceive('update')
+            ->withArgs(function ($apiDocPath, $callable) use ($expectedApiDocPath, $startData) {
                 if ($apiDocPath !== $expectedApiDocPath) {
                     return false;
                 }
 
                 $resultData = $callable($startData);
-                $assertions($resultData);
+                return true;
+            });
+        $this->updater->update($this->routes);
+    }
+
+    private function assertApiDocUpdated(string $docPath)
+    {
+        $this->apiDocReader->shouldHaveReceived()->update($docPath, callableValue())->once();
+    }
+
+    private function assertApiDocUpdateResult(string $expectedApiDocPath, array $startData, callable $assertions)
+    {
+        $this->executeCallablePassedToApiDocReader($expectedApiDocPath, $startData, $assertions);
+    }
+
+    private function executeCallablePassedToApiDocReader(
+        string $expectedApiDocPath,
+        array $startData,
+        callable $do = null
+    ) {
+        $do ??= function () {
+        };
+
+        $this->apiDocReader->shouldHaveReceived('update')
+            ->withArgs(function ($apiDocPath, $callable) use ($expectedApiDocPath, $startData, $do) {
+                if ($apiDocPath !== $expectedApiDocPath) {
+                    return false;
+                }
+
+                $resultData = $callable($startData);
+                $do($resultData);
                 return true;
             });
     }
@@ -279,24 +370,12 @@ class UpdaterTest extends TestCase
     public function apiDocPathMethods()
     {
         return [
-            [ '@Core/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodGet();
-            }, 'get' ],
-            [ '@cookies/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodPost();
-            }, 'post'  ],
-            [ '@Module/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodPut();
-            }, 'put'  ],
-            [ '@Lib/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodPatch();
-            }, 'patch'  ],
-            [ '@Vendor/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodDelete();
-            }, 'delete'  ],
-            [ '@Doink/api-doc.yml', function (DefinedRoute $route) {
-                $route->setMethodOptions();
-            }, 'options'  ],
+            [ '@Core/api-doc.yml', 'get', 'get' ],
+            [ '@cookies/api-doc.yml', 'post', 'post'  ],
+            [ '@Module/api-doc.yml', 'put', 'put'  ],
+            [ '@Lib/api-doc.yml', 'patch', 'patch'  ],
+            [ '@Vendor/api-doc.yml', 'delete', 'delete'  ],
+            [ '@Doink/api-doc.yml', 'options', 'options'  ],
         ];
     }
 }

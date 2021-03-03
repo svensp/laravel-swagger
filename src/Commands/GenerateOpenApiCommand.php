@@ -59,7 +59,7 @@ class GenerateOpenApiCommand extends Command
     {
         $routes = $this->getRoutes();
 
-        $updater->onControlledWithoutApidoc(function (DefinedRoute $definedRoute) {
+        $updater->onControllerWithoutApidoc(function (DefinedRoute $definedRoute) {
             $this->warnSkippedNoApidoc($definedRoute);
         });
         $updater->update($routes);
@@ -95,7 +95,8 @@ class GenerateOpenApiCommand extends Command
     {
         $controller = $this->parseController($route);
 
-        return DefinedRoute::fromControllerAndPath($controller, $route->uri());
+        return DefinedRoute::fromControllerAndPath($controller, $route->uri())
+            ->setMethodFromLaravelName($route->getActionMethod());
     }
 
     private function parseController(Route $route)
@@ -115,7 +116,7 @@ class GenerateOpenApiCommand extends Command
         $this->rememberWarnedForController($controller);
     }
 
-    private function hasWarnedForController($controller)
+    private function hasWarnedForController($controller) : bool
     {
         return array_key_exists($controller, $this->skippedControllers) ;
     }

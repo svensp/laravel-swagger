@@ -11,9 +11,14 @@ class DefinedRoute
 
     public string $path;
 
-    protected string $method = self::METHOD_GET;
+    protected Method $method;
 
-    public static function fromControllerAndPath(string $controller, string $path)
+    protected function __construct()
+    {
+        $this->method = Method::get();
+    }
+
+    public static function fromControllerAndPath(string $controller, string $path) : self
     {
         $definedRoute = new self;
         $definedRoute->controller = $controller;
@@ -21,45 +26,19 @@ class DefinedRoute
         return $definedRoute;
     }
 
-    const METHOD_GET = 'get';
-    const METHOD_POST = 'post';
-    const METHOD_PUT = 'put';
-    const METHOD_PATCH = 'patch';
-    const METHOD_DELETE = 'delete';
-    const METHOD_OPTIONS = 'options';
-
-    public function setMethodGet()
+    public function getOpenApiMethodName()
     {
-        $this->method = self::METHOD_GET;
+        return $this->method->getOpenApiName();
     }
 
-    public function setMethodPost()
+    public function setMethodFromLaravelName(string $methodName) : self
     {
-        $this->method = self::METHOD_POST;
+        $this->method = Method::fromLaravelMethodName($methodName);
+        return $this;
     }
 
-    public function setMethodPut()
+    public function getPath() : string
     {
-        $this->method = self::METHOD_PUT;
-    }
-
-    public function setMethodPatch()
-    {
-        $this->method = self::METHOD_PATCH;
-    }
-
-    public function setMethodDelete()
-    {
-        $this->method = self::METHOD_DELETE;
-    }
-
-    public function setMethodOptions()
-    {
-        $this->method = self::METHOD_OPTIONS;
-    }
-
-    public function getMethodName() : string
-    {
-        return $this->method;
+        return $this->path;
     }
 }

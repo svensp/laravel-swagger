@@ -60,7 +60,7 @@ class FileSystemApiDocIO implements ApiDocIO
     {
         $content =  Yaml::parse($this->yamlContent);
 
-        if(!is_array($content)) {
+        if (!is_array($content)) {
             throw new ReadFailedException();
         }
 

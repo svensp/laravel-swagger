@@ -28,21 +28,36 @@ class Updater
     private $controllerWithoutApidocHook;
 
     /**
-     * Updater constructor.
-     * @param ControllerParser $controllerParser
-     * @param ApiDocIO $reader
+     * @var callable
      */
-    public function __construct(ControllerParser $controllerParser, ApiDocIO $reader)
-    {
+    private $unknownRouteHook;
+
+    private FoundRoutesByApiDoc $foundRoutesByApiDoc;
+
+    public function __construct(
+        ControllerParser $controllerParser,
+        ApiDocIO $reader,
+        FoundRoutesByApiDoc $foundRoutesByApiDoc
+    ) {
         $this->apiDocIO = $reader;
         $this->controllerParser = $controllerParser;
         $this->controllerWithoutApidocHook = function () {
         };
+        $this->unknownRouteHook = function () {
+        };
+        $this->foundRoutesByApiDoc = $foundRoutesByApiDoc;
     }
 
-    public function onControlledWithoutApidoc(callable $do)
+    public function onControllerWithoutApidoc(callable $do) : self
     {
         $this->controllerWithoutApidocHook = $do;
+        return $this;
+    }
+
+    public function onUnknownRoute(callable $do) : self
+    {
+        $this->unknownRouteHook = $do;
+        return $this;
     }
 
     /**
@@ -77,6 +92,33 @@ class Updater
         foreach ($this->routesByController as $routesByController) {
             $this->updateController($routesByController);
         }
+        $this->callUnknownRouteHooks();
+    }
+
+    private function callUnknownRouteHooks()
+    {
+        $this->foundRoutesByApiDoc->eachUnused(function (string $apiDocPath, FoundRoute $foundRoute) {
+            call_user_func($this->unknownRouteHook, $apiDocPath, $foundRoute);
+        });
+    }
+
+    private function updateController(ControllerWithRoutes $controllerWithRoutes)
+    {
+        $this->apiDocIO->update(
+            $controllerWithRoutes->controller->apiDocPath,
+            function ($openApiSpecification) use ($controllerWithRoutes) {
+                $this->rememberExistingRoutes($controllerWithRoutes->controller->apiDocPath, $openApiSpecification);
+                $openApiSpecification = $this->setSpecificationDefaults($openApiSpecification);
+                $openApiSpecification = $this->setRoutesInApiSpecification(
+                    $controllerWithRoutes,
+                    $openApiSpecification
+                );
+                $this->markDefinedRoutesUsed($controllerWithRoutes);
+
+
+                return $openApiSpecification;
+            }
+        );
     }
 
     private function addController(Controller $controller, DefinedRoute $definedRoute)
@@ -85,28 +127,47 @@ class Updater
         $controllerWithRoutes->routes[] = $definedRoute;
     }
 
-    private function updateController(ControllerWithRoutes $controllerWithRoutes)
+    private function rememberExistingRoutes($openApiDocPath, $openApiSpecification)
     {
-        $this->apiDocIO->update(
-            $controllerWithRoutes->controller->apiDocPath,
-            function ($openApiSpecification) use ($controllerWithRoutes) {
-
-                $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
-                $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
-                $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
-                $this->setIfNotPresent($openApiSpecification, 'paths', []);
-
-                foreach ($controllerWithRoutes->routes as $route) {
-                    $path = $route->path;
-                    $method = $route->getMethodName();
-
-                    $basePath = "paths.{$path}.{$method}";
-                    $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
-                }
-
-                return $openApiSpecification;
+        foreach (Arr::get($openApiSpecification, 'paths', []) as $path => $definitions) {
+            $methods = array_keys($definitions);
+            foreach ($methods as $method) {
+                $foundRoute = FoundRoute::fromPathAndOpenApiMethodName($path, $method);
+                $this->foundRoutesByApiDoc->addRouteToApiDocPath($openApiDocPath, $foundRoute);
             }
-        );
+        }
+    }
+
+    private function markDefinedRoutesUsed(ControllerWithRoutes $controllerWithRoutes)
+    {
+        foreach ($controllerWithRoutes->routes as $route) {
+            $this->foundRoutesByApiDoc->markRouteUsedOnApiDocPath(
+                $controllerWithRoutes->controller->apiDocPath,
+                $route
+            );
+        }
+    }
+
+    private function setSpecificationDefaults($openApiSpecification)
+    {
+        $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
+        $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
+        $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
+        $this->setIfNotPresent($openApiSpecification, 'paths', []);
+        return $openApiSpecification;
+    }
+
+    private function setRoutesInApiSpecification(ControllerWithRoutes $controllerWithRoutes, $openApiSpecification)
+    {
+        foreach ($controllerWithRoutes->routes as $route) {
+            $path = $route->path;
+            $method = $route->getOpenApiMethodName();
+
+            $basePath = "paths.{$path}.{$method}";
+            $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
+        }
+
+        return $openApiSpecification;
     }
 
     private function setIfNotPresent(&$array, $key, $defaultValue)
