@@ -19,7 +19,7 @@ class Method
     public static function fromLaravelMethodName(string $laravelMethodName) : self
     {
         $instance = new self();
-        $instance->internalMethodName = $laravelMethodName;
+        $instance->internalMethodName = strtolower($laravelMethodName);
         return $instance;
     }
 
@@ -67,7 +67,7 @@ class Method
 
     public function getOpenApiName() : string
     {
-        return $this->internalMethodName;
+        return strtolower($this->internalMethodName);
     }
 
     public function isPost() : bool
