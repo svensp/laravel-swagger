@@ -54,4 +54,15 @@ class DefinedRoute
     {
         return $this->path;
     }
+
+    public function hasName()
+    {
+        return !empty($this->name);
+    }
+
+    public function setName(string $name) : self
+    {
+        $this->name = $name;
+        return $this;
+    }
 }

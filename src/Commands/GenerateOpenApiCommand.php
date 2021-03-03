@@ -3,10 +3,7 @@
 namespace LaravelSwagger\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Routing\Route;
-use Illuminate\Routing\Router;
-use Illuminate\Support\Arr;
-use LaravelSwagger\OpenApi\DefinedParameter;
+use LaravelSwagger\Laravel\LaravelRouteParser;
 use LaravelSwagger\OpenApi\DefinedRoute;
 use LaravelSwagger\OpenApi\FoundRoute;
 use LaravelSwagger\OpenApi\Updater;
@@ -31,26 +28,22 @@ class GenerateOpenApiCommand extends Command
      */
     protected $description = 'Generate api-docs.json from laravel route definitions';
 
-    /**
-     * The router instance.
-     *
-     * @var \Illuminate\Routing\Router
-     */
-    protected $router;
-
     private array $skippedControllers = [];
+
+    /**
+     * @var LaravelRouteParser
+     */
+    private LaravelRouteParser $laravelRouteParser;
 
     /**
      * Create a new route command instance.
      *
-     * @param  \Illuminate\Routing\Router  $router
-     * @return void
+     * @param LaravelRouteParser $laravelRouteParser
      */
-    public function __construct(Router $router)
+    public function __construct(LaravelRouteParser $laravelRouteParser)
     {
         parent::__construct();
-
-        $this->router = $router;
+        $this->laravelRouteParser = $laravelRouteParser;
     }
 
     /**
@@ -78,58 +71,9 @@ class GenerateOpenApiCommand extends Command
      */
     protected function getRoutes() : array
     {
-        return collect($this->router->getRoutes())
-            ->filter(function ($route) {
-                return $this->isControllerRoute($route);
-            })->map(function ($route) {
-                return $this->getRouteInformations($route);
-            })->flatten()->all();
+        return $this->laravelRouteParser->toDefinedRoutes();
     }
 
-    private function isControllerRoute(Route $route) : bool
-    {
-        return array_key_exists('controller', $route->action);
-    }
-
-    /**
-     * Get the route information for a given route.
-     *
-     * @param  \Illuminate\Routing\Route  $route
-     * @return array
-     */
-    protected function getRouteInformations(Route $route) : array
-    {
-        $controller = $this->parseController($route);
-        $parameters = $this->parseParameters($route);
-
-        return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
-            return DefinedRoute::fromControllerAndPath($controller, $route->uri())
-                ->setMethodFromLaravelName($laravelMethodName)
-                ->setParameters($parameters);
-        })->all();
-    }
-
-    private function parseController(Route $route)
-    {
-        list($controller) = explode('@', $route->action['controller']);
-        return $controller;
-    }
-
-    private function parseParameters(Route $route)
-    {
-        $path = $route->uri();
-
-        $matches = [];
-        preg_match_all('~\{([^}]+)\}~', $path, $matches);
-
-        $parameters = [];
-
-        foreach (Arr::get($matches, 1, []) as $parameterName) {
-            $parameters[] = DefinedParameter::fromName($parameterName);
-        }
-
-        return $parameters;
-    }
 
     private function warnSkippedNoApidoc(DefinedRoute $definedRoute)
     {
