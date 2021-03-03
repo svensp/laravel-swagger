@@ -98,10 +98,12 @@ class GenerateOpenApiCommand extends Command
     protected function getRouteInformations(Route $route) : array
     {
         $controller = $this->parseController($route);
+        $parameters = $this->parseParameters($route);
 
-        return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route) {
+        return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
             return DefinedRoute::fromControllerAndPath($controller, $route->uri())
-                ->setMethodFromLaravelName($laravelMethodName);
+                ->setMethodFromLaravelName($laravelMethodName)
+                ->setParameters($parameters);
         })->all();
     }
 
@@ -109,6 +111,17 @@ class GenerateOpenApiCommand extends Command
     {
         list($controller) = explode('@', $route->action['controller']);
         return $controller;
+    }
+
+    private function parseParameters(Route $route)
+    {
+        $path = $route->uri();
+
+        $matches = [];
+        preg_match_all('~\{[^}]+\}~', $path, $matches);
+        array_shift($matches);
+
+        return $matches;
     }
 
     private function warnSkippedNoApidoc(DefinedRoute $definedRoute)

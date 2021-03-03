@@ -31,6 +31,12 @@ class DefinedRoute
         return $definedRoute;
     }
 
+    public function setParameters(array $parameters): self
+    {
+        $this->parameters = $parameters;
+        return $this;
+    }
+
     public function getOpenApiMethodName()
     {
         return $this->method->getOpenApiName();
