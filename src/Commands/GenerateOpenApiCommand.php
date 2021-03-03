@@ -5,6 +5,8 @@ namespace LaravelSwagger\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
+use Illuminate\Support\Arr;
+use LaravelSwagger\OpenApi\DefinedParameter;
 use LaravelSwagger\OpenApi\DefinedRoute;
 use LaravelSwagger\OpenApi\FoundRoute;
 use LaravelSwagger\OpenApi\Updater;
@@ -118,10 +120,15 @@ class GenerateOpenApiCommand extends Command
         $path = $route->uri();
 
         $matches = [];
-        preg_match_all('~\{[^}]+\}~', $path, $matches);
-        array_shift($matches);
+        preg_match_all('~\{([^}]+)\}~', $path, $matches);
 
-        return $matches;
+        $parameters = [];
+
+        foreach (Arr::get($matches, 1, []) as $parameterName) {
+            $parameters[] = DefinedParameter::fromName($parameterName);
+        }
+
+        return $parameters;
     }
 
     private function warnSkippedNoApidoc(DefinedRoute $definedRoute)
