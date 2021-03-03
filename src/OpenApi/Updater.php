@@ -160,14 +160,36 @@ class Updater
     private function setRoutesInApiSpecification(ControllerWithRoutes $controllerWithRoutes, $openApiSpecification)
     {
         foreach ($controllerWithRoutes->routes as $route) {
-            $path = $route->path;
-            $method = $route->getOpenApiMethodName();
+            $basePath = $this->basePathFromRoute($route);
 
-            $basePath = "paths.{$path}.{$method}";
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
+
+            $openApiSpecification = $this->setParametersForRoute($route, $openApiSpecification);
         }
 
         return $openApiSpecification;
+    }
+
+    private function setParametersForRoute(DefinedRoute $route, $openApiSpecification)
+    {
+        $basePath = $this->basePathFromRoute($route);
+
+        foreach ($route->parameters as $index => $parameter) {
+            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.name", $parameter->name);
+            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.in", 'path');
+            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.required", 'true');
+            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.description", $parameter->description);
+        }
+
+        return $openApiSpecification;
+    }
+
+    private function basePathFromRoute(DefinedRoute $route)
+    {
+        $path = $route->path;
+        $method = $route->getOpenApiMethodName();
+
+        return "paths.{$path}.{$method}";
     }
 
     private function setIfNotPresent(&$array, $key, $defaultValue)

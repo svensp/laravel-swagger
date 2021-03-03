@@ -13,6 +13,11 @@ class DefinedRoute
 
     protected Method $method;
 
+    /**
+     * @var DefinedParameter[]
+     */
+    public array $parameters = [];
+
     protected function __construct()
     {
         $this->method = Method::get();

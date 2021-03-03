@@ -3,6 +3,7 @@
 use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\Controller;
 use LaravelSwagger\OpenApi\ControllerParser;
+use LaravelSwagger\OpenApi\DefinedParameter;
 use LaravelSwagger\OpenApi\DefinedRoute;
 use LaravelSwagger\OpenApi\FoundRoute;
 use LaravelSwagger\OpenApi\NoApiDocSpecifiedException;
@@ -139,6 +140,9 @@ class UpdaterTest extends TestCase
         $this->withRouteAndMatchingController($apiDocPath, function (DefinedRoute $route) use ($laravelMethodName) {
             $route->controller = 'TestController';
             $route->path = '/user/{user_id}';
+            $route->parameters = [
+                DefinedParameter::fromName('user_id')
+            ];
             $route->setMethodFromLaravelName($laravelMethodName);
         });
 
@@ -147,6 +151,27 @@ class UpdaterTest extends TestCase
             $this->assertArrayEquals(
                 'TODO: Summary',
                 "paths./user/{user_id}.{$openApiMethodName}.summary",
+                $resultApiDoc
+            );
+
+            $this->assertArrayEquals(
+                'TODO: Description',
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.description",
+                $resultApiDoc
+            );
+            $this->assertArrayEquals(
+                'user_id',
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.name",
+                $resultApiDoc
+            );
+            $this->assertArrayEquals(
+                'path',
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.in",
+                $resultApiDoc
+            );
+            $this->assertArrayEquals(
+                'true',
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.required",
                 $resultApiDoc
             );
         });
