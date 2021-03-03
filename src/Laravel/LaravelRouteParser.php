@@ -52,7 +52,7 @@ class LaravelRouteParser
             return DefinedRoute::fromControllerAndPath($controller, $route->uri())
                 ->setMethodFromLaravelName($laravelMethodName)
                 ->setParameters($parameters)
-                ->setName($route->getName());
+                ->setName($route->getName() ?? '');
         })->all();
     }
 
