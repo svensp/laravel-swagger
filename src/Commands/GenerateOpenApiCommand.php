@@ -80,8 +80,8 @@ class GenerateOpenApiCommand extends Command
             ->filter(function ($route) {
                 return $this->isControllerRoute($route);
             })->map(function ($route) {
-                return $this->getRouteInformation($route);
-            })->all();
+                return $this->getRouteInformations($route);
+            })->flatten()->all();
     }
 
     private function isControllerRoute(Route $route) : bool
@@ -95,12 +95,14 @@ class GenerateOpenApiCommand extends Command
      * @param  \Illuminate\Routing\Route  $route
      * @return array
      */
-    protected function getRouteInformation(Route $route) : DefinedRoute
+    protected function getRouteInformations(Route $route) : DefinedRoute
     {
         $controller = $this->parseController($route);
 
-        return DefinedRoute::fromControllerAndPath($controller, $route->uri())
-            ->setMethodFromLaravelName($route->getActionMethod());
+        return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route) {
+            return DefinedRoute::fromControllerAndPath($controller, $route->uri())
+                ->setMethodFromLaravelName($laravelMethodName);
+        })->all();
     }
 
     private function parseController(Route $route)
