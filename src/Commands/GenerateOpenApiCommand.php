@@ -95,7 +95,7 @@ class GenerateOpenApiCommand extends Command
      * @param  \Illuminate\Routing\Route  $route
      * @return array
      */
-    protected function getRouteInformations(Route $route) : DefinedRoute
+    protected function getRouteInformations(Route $route) : array
     {
         $controller = $this->parseController($route);
 
