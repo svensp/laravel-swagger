@@ -170,7 +170,7 @@ class UpdaterTest extends TestCase
                 $resultApiDoc
             );
             $this->assertArrayEquals(
-                'true',
+                true,
                 "paths./user/{user_id}.{$openApiMethodName}.parameters.0.required",
                 $resultApiDoc
             );

@@ -177,8 +177,12 @@ class Updater
         foreach ($route->parameters as $index => $parameter) {
             $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.name", $parameter->name);
             $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.in", 'path');
-            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.required", 'true');
-            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.description", $parameter->description);
+            $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.required", true);
+            $this->setIfNotPresent(
+                $openApiSpecification,
+                "$basePath.parameters.$index.description",
+                $parameter->description
+            );
         }
 
         return $openApiSpecification;

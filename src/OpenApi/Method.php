@@ -99,5 +99,4 @@ class Method
     {
         return $this->internalMethodName === self::INTERNAL_METHOD_OPTIONS;
     }
-
 }

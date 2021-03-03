@@ -23,6 +23,4 @@ class DefinedParameter
         $this->description = $description;
         return $this;
     }
-
-
 }
