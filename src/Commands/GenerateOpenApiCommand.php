@@ -109,7 +109,7 @@ class GenerateOpenApiCommand extends Command
         return $controller;
     }
 
-    private function warnSkippedNoApidoc(FoundRoute $definedRoute)
+    private function warnSkippedNoApidoc(DefinedRoute $definedRoute)
     {
         $controller = $definedRoute->controller;
         if ($this->hasWarnedForController($controller)) {
@@ -120,11 +120,11 @@ class GenerateOpenApiCommand extends Command
         $this->rememberWarnedForController($controller);
     }
 
-    private function warnUnknownRoute(string $apiDocPath, DefinedRoute $definedRoute)
+    private function warnUnknownRoute(string $apiDocPath, FoundRoute $route)
     {
         $this->warn(
             "Route no longer present:"
-            ." {$apiDocPath} - {$definedRoute->getPath()}.{$definedRoute->getOpenApiMethodName()}"
+            ." {$apiDocPath} - {$route->getPath()}.{$route->getOpenApiMethodName()}"
         );
     }
 
