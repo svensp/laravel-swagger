@@ -6,6 +6,7 @@ use Illuminate\Console\Command;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use LaravelSwagger\OpenApi\DefinedRoute;
+use LaravelSwagger\OpenApi\FoundRoute;
 use LaravelSwagger\OpenApi\Updater;
 
 /**
@@ -62,6 +63,9 @@ class GenerateOpenApiCommand extends Command
         $updater->onControllerWithoutApidoc(function (DefinedRoute $definedRoute) {
             $this->warnSkippedNoApidoc($definedRoute);
         });
+        $updater->onUnknownRoute(function (string $apiDocPath, FoundRoute $foundRoute) {
+            $this->warnUnknownRoute($apiDocPath, $foundRoute);
+        });
         $updater->update($routes);
     }
 
@@ -105,7 +109,7 @@ class GenerateOpenApiCommand extends Command
         return $controller;
     }
 
-    private function warnSkippedNoApidoc(DefinedRoute $definedRoute)
+    private function warnSkippedNoApidoc(FoundRoute $definedRoute)
     {
         $controller = $definedRoute->controller;
         if ($this->hasWarnedForController($controller)) {
@@ -114,6 +118,14 @@ class GenerateOpenApiCommand extends Command
 
         $this->warn("Skipped {$definedRoute->controller} - no apidoc defined");
         $this->rememberWarnedForController($controller);
+    }
+
+    private function warnUnknownRoute(string $apiDocPath, DefinedRoute $definedRoute)
+    {
+        $this->warn(
+            "Route no longer present:"
+            ." {$apiDocPath} - {$definedRoute->getPath()}.{$definedRoute->getOpenApiMethodName()}"
+        );
     }
 
     private function hasWarnedForController($controller) : bool
