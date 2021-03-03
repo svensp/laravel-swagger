@@ -122,9 +122,10 @@ class GenerateOpenApiCommand extends Command
 
     private function warnUnknownRoute(string $apiDocPath, FoundRoute $route)
     {
+        $upperCaseMethodName = strtoupper($route->getOpenApiMethodName());
         $this->warn(
             "Route no longer present:"
-            ." {$apiDocPath} - {$route->getPath()}.{$route->getOpenApiMethodName()}"
+            ." {$apiDocPath} - {$upperCaseMethodName} {$route->getPath()}"
         );
     }
 
