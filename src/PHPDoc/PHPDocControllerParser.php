@@ -46,7 +46,7 @@ class PHPDocControllerParser implements ControllerParser
             throw new NoApiDocSpecifiedException("No ApiDoc specified in {$this->classPath}");
         }
 
-        $this->apiDocPath = $apiDocPath;
+        $this->apiDocPath = trim($apiDocPath);
     }
 
     private function parseApiTagsFromComment()
@@ -65,7 +65,7 @@ class PHPDocControllerParser implements ControllerParser
     private function parseTagFromDocs($tag): string
     {
         $matches = [];
-        $result = preg_match('~^[^*]*?\*\s*@'.$tag.'\s*([^\s]*)\s*$~m', $this->comment, $matches);
+        $result = preg_match('~^[^*]*?\*\s*@'.$tag.'\s*(.*)$~m', $this->comment, $matches);
 
         if ($this->resultIsError($result)) {
             throw new \ErrorException(
