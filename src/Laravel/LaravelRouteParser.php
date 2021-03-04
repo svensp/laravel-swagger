@@ -77,5 +77,4 @@ class LaravelRouteParser
 
         return $parameters;
     }
-
 }

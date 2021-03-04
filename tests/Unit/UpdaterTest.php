@@ -145,6 +145,8 @@ class UpdaterTest extends TestCase
                 DefinedParameter::fromName('user_id')
             ];
             $route->setMethodFromLaravelName($laravelMethodName);
+        }, function (Controller $controller) {
+            $controller->tags = ['tag1','tag2','tag3'];
         });
 
         $this->updateAndAssertResult($apiDocPath, [], function ($resultApiDoc) use ($openApiMethodName) {
@@ -157,6 +159,11 @@ class UpdaterTest extends TestCase
             $this->assertArrayEquals(
                 'TODO: Summary',
                 "paths./user/{user_id}.{$openApiMethodName}.summary",
+                $resultApiDoc
+            );
+            $this->assertArrayEquals(
+                ['tag1','tag2','tag3'],
+                "paths./user/{user_id}.{$openApiMethodName}.tags",
                 $resultApiDoc
             );
 
@@ -292,10 +299,15 @@ class UpdaterTest extends TestCase
         $this->assertApiDocUpdateResult($apiDocPath, $startData, $assertions);
     }
 
-    private function withRouteAndMatchingController($apiDocPath, callable $modifier = null)
-    {
+    private function withRouteAndMatchingController(
+        $apiDocPath,
+        callable $modifier = null,
+        callable $controllerModifier = null
+    ) {
         $controllerClassPath = 'TestController';
         $modifier ??= function () {
+        };
+        $controllerModifier ??= function () {
         };
 
         $this->withDefinedRoute(function (DefinedRoute $route) use ($controllerClassPath, $modifier) {
@@ -303,9 +315,13 @@ class UpdaterTest extends TestCase
             $modifier($route);
         });
 
-        $this->withController($controllerClassPath, function (Controller $controller) use ($apiDocPath) {
-            $controller->apiDocPath = $apiDocPath;
-        });
+        $this->withController(
+            $controllerClassPath,
+            function (Controller $controller) use ($apiDocPath, $controllerModifier) {
+                $controller->apiDocPath = $apiDocPath;
+                $controllerModifier($controller);
+            }
+        );
     }
 
     private function withDefinedRoute(\Closure $modifier)

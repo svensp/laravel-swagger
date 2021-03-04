@@ -167,9 +167,26 @@ class Updater
             }
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
 
+            $openApiSpecification = $this->setTagsForRoute(
+                $controllerWithRoutes->controller,
+                $route,
+                $openApiSpecification
+            );
+
             $openApiSpecification = $this->setParametersForRoute($route, $openApiSpecification);
         }
 
+        return $openApiSpecification;
+    }
+
+    private function setTagsForRoute(Controller $controller, DefinedRoute $route, $openApiSpecification)
+    {
+        if ($controller->noTags()) {
+            return $openApiSpecification;
+        }
+
+        $basePath = $this->basePathFromRoute($route);
+        $this->setIfNotPresent($openApiSpecification, "$basePath.tags", $controller->tags);
         return $openApiSpecification;
     }
 

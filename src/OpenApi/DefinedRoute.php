@@ -18,7 +18,7 @@ class DefinedRoute
      */
     public array $parameters = [];
 
-    public  string $name = '';
+    public string $name = '';
 
     protected function __construct()
     {

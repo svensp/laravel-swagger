@@ -17,4 +17,9 @@ class Controller
     {
         return $this->path;
     }
+
+    public function noTags(): bool
+    {
+        return empty($this->tags);
+    }
 }
