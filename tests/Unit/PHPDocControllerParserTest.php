@@ -45,6 +45,19 @@ class PHPDocControllerParserTest extends TestCase
     /**
      * @test
      */
+    public function parses_phpdoc_property_tags_from_classpath()
+    {
+        $controller = $this->controller->parse(ControllerWithApiDocPHPDoc::class);
+        $this->assertEquals(
+            ['tag1','tag2'],
+            $controller->tags,
+            'PHPDocControllerParser did not parse apitags property from class correctly'
+        );
+    }
+
+    /**
+     * @test
+     */
     public function throws_not_found_exception_if_class_has_no_apidoc_property()
     {
         $this->expectException(NoApiDocSpecifiedException::class);

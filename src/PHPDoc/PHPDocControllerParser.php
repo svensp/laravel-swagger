@@ -14,6 +14,7 @@ class PHPDocControllerParser implements ControllerParser
     private string $classPath;
     private string $comment;
     private string $apiDocPath;
+    private array $tags = [];
 
     public function parse(string $classPath): Controller
     {
@@ -21,6 +22,7 @@ class PHPDocControllerParser implements ControllerParser
 
         $this->parseCommentFromController();
         $this->parseApiDocFromComment();
+        $this->parseApiTagsFromComment();
 
         return $this->buildController();
     }
@@ -37,8 +39,33 @@ class PHPDocControllerParser implements ControllerParser
 
     private function parseApiDocFromComment()
     {
+        $apiDocPath = $this->parseTagFromDocs('apidoc');
+
+        $noApiDocPath = empty($apiDocPath);
+        if ($noApiDocPath) {
+            throw new NoApiDocSpecifiedException("No ApiDoc specified in {$this->classPath}");
+        }
+
+        $this->apiDocPath = $apiDocPath;
+    }
+
+    private function parseApiTagsFromComment()
+    {
+        $commaSeparatedTags = $this->parseTagFromDocs('apitags');
+        $noTags = empty($commaSeparatedTags);
+
+        if ($noTags) {
+            $this->tags = [];
+            return;
+        }
+
+        $this->tags = $this->explodeAndTrimTags($commaSeparatedTags);
+    }
+
+    private function parseTagFromDocs($tag): string
+    {
         $matches = [];
-        $result = preg_match('~^[^*]*?\*\s*@apidoc\s*([^\s]*)\s*$~m', $this->comment, $matches);
+        $result = preg_match('~^[^*]*?\*\s*@'.$tag.'\s*([^\s]*)\s*$~m', $this->comment, $matches);
 
         if ($this->resultIsError($result)) {
             throw new \ErrorException(
@@ -46,10 +73,18 @@ class PHPDocControllerParser implements ControllerParser
             );
         }
         if ($this->resultIsNotFound($result)) {
-            throw new NoApiDocSpecifiedException("No ApiDoc specified in {$this->classPath}");
+            return '';
         }
 
-        $this->apiDocPath = $matches[1];
+        return $matches[1];
+    }
+
+    private function explodeAndTrimTags($commaSeparatedTags)
+    {
+        $tags = explode(',', $commaSeparatedTags);
+        return array_map(function ($tag) {
+            return trim($tag);
+        }, $tags);
     }
 
     private function buildController()
@@ -57,6 +92,7 @@ class PHPDocControllerParser implements ControllerParser
         $controller = new Controller();
         $controller->path = $this->classPath;
         $controller->apiDocPath = $this->apiDocPath;
+        $controller->tags = $this->tags;
         return $controller;
     }
 

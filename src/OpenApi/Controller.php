@@ -11,6 +11,8 @@ class Controller
 
     public string $apiDocPath = '';
 
+    public array $tags = [];
+
     public function getKey()
     {
         return $this->path;
