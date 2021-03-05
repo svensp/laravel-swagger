@@ -9,7 +9,7 @@ class DefinedParameter
 
     public string $name;
 
-    public string $description = 'TODO: Description';
+    public string $description = 'TODO Description';
 
     public static function fromName(string $name): self
     {

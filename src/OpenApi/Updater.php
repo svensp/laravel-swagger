@@ -165,7 +165,7 @@ class Updater
             if ($route->hasName()) {
                 $this->setIfNotPresent($openApiSpecification, "$basePath.operationId", $route->name);
             }
-            $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO: Summary');
+            $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO Summary');
 
             $openApiSpecification = $this->setTagsForRoute(
                 $controllerWithRoutes->controller,
