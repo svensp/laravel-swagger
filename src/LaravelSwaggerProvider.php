@@ -27,14 +27,6 @@ class LaravelSwaggerProvider extends ServiceProvider
     public function register()
     {
         $this->setDefaultConfig();
-    }
-
-    public function boot()
-    {
-        $this->registerImplementations();
-        $this->registerCommands();
-        $this->registerPublishedFiles();
-        $this->passConfigSettingsToUpdater();
 
         Route::macro('apiDoc', function ($route, $filePath) {
             return Route::get($route, function () use ($filePath) {
@@ -46,6 +38,14 @@ class LaravelSwaggerProvider extends ServiceProvider
                 return $controller->sendApiDoc();
             });
         });
+    }
+
+    public function boot()
+    {
+        $this->registerImplementations();
+        $this->registerCommands();
+        $this->registerPublishedFiles();
+        $this->passConfigSettingsToUpdater();
     }
 
     private function setDefaultConfig()
