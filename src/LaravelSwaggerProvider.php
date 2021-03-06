@@ -2,7 +2,6 @@
 
 namespace LaravelSwagger;
 
-use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
@@ -37,7 +36,7 @@ class LaravelSwaggerProvider extends ServiceProvider
         $this->registerPublishedFiles();
         $this->passConfigSettingsToUpdater();
 
-        Router::macro('apiDoc', function ($route, $filePath) {
+        Route::macro('apiDoc', function ($route, $filePath) {
             return Route::get($route, function () use ($filePath) {
                 /**
                  * @var ApiDocController $controller
