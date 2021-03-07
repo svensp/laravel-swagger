@@ -9,9 +9,11 @@ use LaravelSwagger\Commands\GenerateOpenApiCommand;
 use LaravelSwagger\Controllers\ApiDocController;
 use LaravelSwagger\Controllers\Cache;
 use LaravelSwagger\Controllers\DoAfterRequestSent;
+use LaravelSwagger\Controllers\ResponseBuilder;
 use LaravelSwagger\Filesystem\FileSystemApiDocIO;
 use LaravelSwagger\Laravel\LaravelCache;
 use LaravelSwagger\Laravel\LaravelDoAfterRequestSent;
+use LaravelSwagger\Laravel\LaravelResponseBuilder;
 use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\ControllerParser;
 use LaravelSwagger\PHPDoc\PHPDocControllerParser;
@@ -27,17 +29,7 @@ class LaravelSwaggerProvider extends ServiceProvider
     public function register()
     {
         $this->setDefaultConfig();
-
-        Route::macro('apiDoc', function ($route, $filePath) {
-            return Route::get($route, function () use ($filePath) {
-                /**
-                 * @var ApiDocController $controller
-                 */
-                $controller = app(ApiDocController::class);
-                $controller->setFilepath($filePath);
-                return $controller->sendApiDoc();
-            });
-        });
+        $this->registerOpenApiRouteMacro();
     }
 
     public function boot()
@@ -53,12 +45,27 @@ class LaravelSwaggerProvider extends ServiceProvider
         $this->mergeConfigFrom($this->packageConfigFile, 'open-api');
     }
 
+    private function registerOpenApiRouteMacro(): void
+    {
+        Route::macro('openapi', function ($route, $filePath) {
+            return Route::get($route, function () use ($filePath) {
+                /**
+                 * @var ApiDocController $controller
+                 */
+                $controller = app(ApiDocController::class);
+                $controller->setFilepath($filePath);
+                return $controller->sendApiDoc();
+            });
+        });
+    }
+
     private function registerImplementations()
     {
         $this->app->bind(ApiDocIO::class, FileSystemApiDocIO::class);
         $this->app->bind(ControllerParser::class, PHPDocControllerParser::class);
         $this->app->bind(Cache::class, LaravelCache::class);
         $this->app->bind(DoAfterRequestSent::class, LaravelDoAfterRequestSent::class);
+        $this->app->bind(ResponseBuilder::class, LaravelResponseBuilder::class);
     }
 
     private function registerCommands(): void
