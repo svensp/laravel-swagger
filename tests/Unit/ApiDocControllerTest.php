@@ -78,11 +78,11 @@ class ApiDocControllerTest extends TestCase
     /**
      * @test
      */
-    public function cache_remember_callback_builds_json_from_yml()
+    public function cache_remember_callback_builds_json_data_from_yml()
     {
         $this->apiDocController->setFilepath(__DIR__.'/data/api-doc.yml');
 
-        $result = '';
+        $result = [];
         $this->cache->shouldReceive('remember')
             ->withArgs(function ($key, $do) use (&$result) {
                 $this->assertEquals(__DIR__.'/data/api-doc.yml.json', $key);
@@ -91,9 +91,8 @@ class ApiDocControllerTest extends TestCase
             });
         $this->apiDocController->sendApiDoc();
 
-        $data = json_decode($result, true);
-        $this->assertArrayHasKey('testkey', $data);
-        $this->assertEquals('testvalue', $data['testkey']);
+        $this->assertArrayHasKey('testkey', $result);
+        $this->assertEquals('testvalue', $result['testkey']);
     }
 
     /**

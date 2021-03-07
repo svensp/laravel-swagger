@@ -44,8 +44,7 @@ class ApiDocController
         $key = $this->filepath.'.json';
         $json = $this->cache->remember($key, function () {
             $yamlContent = file_get_contents($this->filepath);
-            $data = Yaml::parse($yamlContent);
-            return json_encode($data);
+            return Yaml::parse($yamlContent);
         }, $this->cacheTtlInMs);
 
         return $this->responseBuilder->jsonResponse($json);
