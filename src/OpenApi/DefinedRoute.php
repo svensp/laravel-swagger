@@ -1,5 +1,7 @@
 <?php namespace LaravelSwagger\OpenApi;
 
+use Illuminate\Support\Str;
+
 /**
  * Class DefinedRoute
  * @package LaravelSwagger\OpenApi
@@ -27,6 +29,11 @@ class DefinedRoute
 
     public static function fromControllerAndPath(string $controller, string $path) : self
     {
+        $noStartingSlash = !Str::startsWith($path, '/');
+        if ($noStartingSlash) {
+            $path = '/'.$path;
+        }
+
         $definedRoute = new self;
         $definedRoute->controller = $controller;
         $definedRoute->path = $path;
