@@ -1,13 +1,11 @@
 <?php
+
+use Symfony\Component\Yaml\Yaml;
+
 return [
     'aliases' => [
         '@' => app_path(),
     ],
-    'template' => [
-        'openapi' => '3.0.3',
-        'info' => [
-            'title' => 'CHANGEME',
-            'version' => '0.1.0'
-        ]
-    ]
+    'template' => Yaml::parseFile(resource_path('open-api.tpl.yaml')),
+    'route-template' => Yaml::parseFile(resource_path('route.ypl.yaml'))
 ];

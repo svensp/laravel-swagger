@@ -82,6 +82,8 @@ class LaravelSwaggerProvider extends ServiceProvider
     {
         $this->publishes([
             $this->packageConfigFile => config_path('open-api.php'),
+            __DIR__.'/../resources/open-api.tpl.yaml' => resource_path('open-api.tpl.yaml'),
+            __DIR__.'/../resources/route.tpl.yaml' => resource_path('route.tpl.yaml'),
         ]);
     }
 

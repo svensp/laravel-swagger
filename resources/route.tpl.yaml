@@ -1,0 +1,9 @@
+summary: TODO Summary
+responses:
+  200:
+    description: success
+    content:
+      application/json:
+        schema:
+          type: object
+          example: {}

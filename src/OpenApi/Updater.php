@@ -36,6 +36,8 @@ class Updater
 
     private array $openApiTemplate = [];
 
+    private array $routeTemplate = [];
+
     public function __construct(
         ControllerParser $controllerParser,
         ApiDocIO $reader,
@@ -164,7 +166,7 @@ class Updater
         foreach ($template as $key => $value) {
             $newBase = array_merge($basePath, [$key]);
 
-            if (is_array($value)) {
+            if (is_array($value) && !empty($value)) {
                 $openApiSpecification = $this->applyTemplate($openApiSpecification, $value, $newBase);
                 continue;
             }
@@ -183,18 +185,8 @@ class Updater
             if ($route->hasName()) {
                 $this->setIfNotPresent($openApiSpecification, "$basePath.operationId", $route->name);
             }
-            $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO Summary');
-            $this->setIfNotPresent(
-                $openApiSpecification,
-                "$basePath.contentType",
-                'application/json'
-            );
 
-            if (!Arr::has($openApiSpecification, "$basePath.responses")) {
-                Arr::set($openApiSpecification, "$basePath.responses", [
-                    200 => []
-                ]);
-            }
+            $openApiSpecification = $this->applyTemplate($openApiSpecification, $this->routeTemplate, [$basePath]);
 
             $openApiSpecification = $this->setTagsForRoute(
                 $controllerWithRoutes->controller,
@@ -270,6 +262,16 @@ class Updater
     public function setOpenApiTemplate(array $openApiTemplate): Updater
     {
         $this->openApiTemplate = $openApiTemplate;
+        return $this;
+    }
+
+    /**
+     * @param array $routeTemplate
+     * @return Updater
+     */
+    public function setRouteTemplate(array $routeTemplate): Updater
+    {
+        $this->routeTemplate = $routeTemplate;
         return $this;
     }
 }

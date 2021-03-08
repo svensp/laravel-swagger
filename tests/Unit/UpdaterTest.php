@@ -160,6 +160,13 @@ class UpdaterTest extends TestCase
         }, function (Controller $controller) {
             $controller->tags = ['tag1','tag2','tag3'];
         });
+        $this->updater->setRouteTemplate([
+            'summary' => 'TODO Summary',
+            'contentType' => 'application/json',
+            'responses' => [
+                200 => []
+            ],
+        ]);
 
         $this->updateAndAssertResult($apiDocPath, [], function ($resultApiDoc) use ($openApiMethodName) {
             $this->assertArrayHas("paths./user/{user_id}.{$openApiMethodName}", $resultApiDoc);
