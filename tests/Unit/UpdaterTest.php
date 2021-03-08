@@ -171,6 +171,11 @@ class UpdaterTest extends TestCase
                 "paths./user/{user_id}.{$openApiMethodName}.responses",
                 $resultApiDoc
             );
+            $this->assertArrayEquals(
+                'application/json',
+                "paths./user/{user_id}.{$openApiMethodName}.contentType",
+                $resultApiDoc
+            );
 
             $this->assertArrayEquals(
                 'TODO Description',

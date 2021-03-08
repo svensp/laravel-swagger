@@ -166,6 +166,11 @@ class Updater
                 $this->setIfNotPresent($openApiSpecification, "$basePath.operationId", $route->name);
             }
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO Summary');
+            $this->setIfNotPresent(
+                $openApiSpecification,
+                "$basePath.contentType",
+                'application/json'
+            );
 
             if (!Arr::has($openApiSpecification, "$basePath.responses")) {
                 Arr::set($openApiSpecification, "$basePath.responses", [
