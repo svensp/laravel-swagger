@@ -34,6 +34,8 @@ class Updater
 
     private FoundRoutesByApiDoc $foundRoutesByApiDoc;
 
+    private array $openApiTemplate = [];
+
     public function __construct(
         ControllerParser $controllerParser,
         ApiDocIO $reader,
@@ -150,10 +152,26 @@ class Updater
 
     private function setSpecificationDefaults($openApiSpecification)
     {
-        $this->setIfNotPresent($openApiSpecification, 'openapi', '3.0.3');
-        $this->setIfNotPresent($openApiSpecification, 'info.title', 'CHANGEME');
-        $this->setIfNotPresent($openApiSpecification, 'info.version', '0.1.0');
+        $openApiSpecification = $this->applyTemplate($openApiSpecification, $this->openApiTemplate);
         $this->setIfNotPresent($openApiSpecification, 'paths', []);
+        return $openApiSpecification;
+    }
+
+    private function applyTemplate(array $openApiSpecification, array $template, $basePath = null)
+    {
+        $basePath ??= [];
+
+        foreach ($template as $key => $value) {
+            $newBase = array_merge($basePath, [$key]);
+
+            if (is_array($value)) {
+                $openApiSpecification = $this->applyTemplate($openApiSpecification, $value, $newBase);
+                continue;
+            }
+
+            $this->setIfNotPresent($openApiSpecification, implode('.', $newBase), $value);
+        }
+
         return $openApiSpecification;
     }
 
@@ -243,5 +261,15 @@ class Updater
         }
 
         return $this->routesByController[$key];
+    }
+
+    /**
+     * @param array $openApiTemplate
+     * @return Updater
+     */
+    public function setOpenApiTemplate(array $openApiTemplate): Updater
+    {
+        $this->openApiTemplate = $openApiTemplate;
+        return $this;
     }
 }

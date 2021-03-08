@@ -89,12 +89,24 @@ class UpdaterTest extends TestCase
     public function empty_api_doc_json_creates_file_from_template($apiDocPath)
     {
         $this->withRouteAndMatchingController($apiDocPath);
+        $this->updater->setOpenapiTemplate([
+            'openapi' => '3.0.3',
+            'info' => [
+                'title' => 'CHANGEME',
+                'version' => '0.1.0'
+            ]
+        ]);
 
         $this->updateAndAssertResult($apiDocPath, [], function ($resultApiDoc) {
             $this->assertArrayHas('openapi', $resultApiDoc);
             $this->assertArrayHas('info.title', $resultApiDoc);
             $this->assertArrayHas('info.version', $resultApiDoc);
             $this->assertArrayHas('paths', $resultApiDoc);
+
+            $this->assertArrayEquals('3.0.3', 'openapi', $resultApiDoc);
+            $this->assertArrayEquals('CHANGEME', 'info.title', $resultApiDoc);
+            $this->assertArrayEquals('0.1.0', 'info.version', $resultApiDoc);
+            $this->assertIsArray($resultApiDoc['paths']);
         });
     }
 

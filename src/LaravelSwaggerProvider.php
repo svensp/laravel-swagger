@@ -16,6 +16,7 @@ use LaravelSwagger\Laravel\LaravelDoAfterRequestSent;
 use LaravelSwagger\Laravel\LaravelResponseBuilder;
 use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\ControllerParser;
+use LaravelSwagger\OpenApi\Updater;
 use LaravelSwagger\PHPDoc\PHPDocControllerParser;
 
 /**
@@ -86,6 +87,10 @@ class LaravelSwaggerProvider extends ServiceProvider
 
     private function passConfigSettingsToUpdater()
     {
+        $this->app->resolving(Updater::class, function (Updater $updater) {
+            $openApiTemplate = Config::get('open-api.template', []);
+            $updater->setOpenApiTemplate($openApiTemplate);
+        });
         $this->app->resolving(FileSystemApiDocIO::class, function (FileSystemApiDocIO $apiDoc) {
             $aliases = Config::get('open-api.aliases', []);
             foreach ($aliases as $alias => $path) {
