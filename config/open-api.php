@@ -7,5 +7,5 @@ return [
         '@' => app_path(),
     ],
     'template' => Yaml::parseFile(resource_path('open-api.tpl.yaml')),
-    'route-template' => Yaml::parseFile(resource_path('route.ypl.yaml'))
+    'route-template' => Yaml::parseFile(resource_path('route.tpl.yaml'))
 ];
