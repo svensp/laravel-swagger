@@ -167,7 +167,7 @@ class Updater
             }
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO Summary');
 
-            if (!Arr::has("$basePath.responses")) {
+            if (!Arr::has($openApiSpecification, "$basePath.responses")) {
                 Arr::set($openApiSpecification, "$basePath.responses", [
                     200 => []
                 ]);
