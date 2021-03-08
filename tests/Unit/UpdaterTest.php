@@ -167,7 +167,7 @@ class UpdaterTest extends TestCase
                 $resultApiDoc
             );
             $this->assertArrayEquals(
-                [],
+                ['200' => []],
                 "paths./user/{user_id}.{$openApiMethodName}.responses",
                 $resultApiDoc
             );

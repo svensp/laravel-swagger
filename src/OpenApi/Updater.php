@@ -166,7 +166,12 @@ class Updater
                 $this->setIfNotPresent($openApiSpecification, "$basePath.operationId", $route->name);
             }
             $this->setIfNotPresent($openApiSpecification, "$basePath.summary", 'TODO Summary');
-            $this->setIfNotPresent($openApiSpecification, "$basePath.responses", []);
+
+            if (!Arr::has("$basePath.responses")) {
+                Arr::set($openApiSpecification, "$basePath.responses", [
+                    200 => []
+                ]);
+            }
 
             $openApiSpecification = $this->setTagsForRoute(
                 $controllerWithRoutes->controller,
