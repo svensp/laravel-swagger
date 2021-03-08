@@ -43,9 +43,12 @@ class ApiDocController
     {
         $key = $this->filepath.'.json';
         $json = $this->cache->remember($key, function () {
-            $yamlContent = file_get_contents($this->filepath);
-            return Yaml::parse($yamlContent);
+            return $this->parseYaml();
         }, $this->cacheTtlInMs);
+
+        $this->doAfterRequestSent->doAfterRequestSent(function () use ($key) {
+            $this->cache->set($key, $this->parseYaml(), $this->cacheTtlInMs);
+        });
 
         return $this->responseBuilder->jsonResponse($json);
     }
@@ -64,5 +67,14 @@ class ApiDocController
     {
         $this->cacheTtlInMs = $cacheTtlInMs;
         return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function parseYaml()
+    {
+        $yamlContent = file_get_contents($this->filepath);
+        return Yaml::parse($yamlContent);
     }
 }

@@ -106,4 +106,22 @@ class ApiDocControllerTest extends TestCase
 
         $this->cache->shouldHaveReceived('remember')->with(stringValue(), callableValue(), 1000);
     }
+
+    /**
+     * @test
+     */
+    public function renews_cache_in_after_terminate_action()
+    {
+        $this->apiDocController->setFilepath(__DIR__.'/data/api-doc.yml');
+
+        $this->apiDocController->sendApiDoc();
+
+        $this->doAfterRequestSent->shouldHaveReceived('doAfterRequestSent')->withArgs(function (callable $do) {
+            $do();
+            return true;
+        });
+        $this->cache->shouldHaveReceived('set')->with(__DIR__.'/data/api-doc.yml.json', [
+            'testkey' => 'testvalue'
+        ], intValue());
+    }
 }
