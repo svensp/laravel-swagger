@@ -29,7 +29,6 @@ class LaravelSwaggerProvider extends ServiceProvider
 
     public function register()
     {
-        $this->setDefaultConfig();
         $this->registerOpenApiRouteMacro();
     }
 
@@ -39,11 +38,6 @@ class LaravelSwaggerProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerPublishedFiles();
         $this->passConfigSettingsToUpdater();
-    }
-
-    private function setDefaultConfig()
-    {
-        $this->mergeConfigFrom($this->packageConfigFile, 'open-api');
     }
 
     private function registerOpenApiRouteMacro(): void
