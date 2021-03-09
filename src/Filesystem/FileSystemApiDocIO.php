@@ -69,7 +69,7 @@ class FileSystemApiDocIO implements ApiDocIO
 
     private function convertToYaml($data)
     {
-        return Yaml::dump($data, 8, 2);
+        return Yaml::dump($data, 255, 2);
     }
 
     private function writeToFile($newYaml)
