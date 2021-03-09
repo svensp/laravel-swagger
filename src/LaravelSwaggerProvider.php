@@ -86,6 +86,9 @@ class LaravelSwaggerProvider extends ServiceProvider
         $this->app->resolving(Updater::class, function (Updater $updater) {
             $openApiTemplate = Config::get('open-api.template', []);
             $updater->setOpenApiTemplate($openApiTemplate);
+
+            $routeTemplate = Config::get('open-api.route-template', []);
+            $updater->setRouteTemplate($routeTemplate);
         });
         $this->app->resolving(FileSystemApiDocIO::class, function (FileSystemApiDocIO $apiDoc) {
             $aliases = Config::get('open-api.aliases', []);
