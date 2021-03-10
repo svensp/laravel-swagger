@@ -49,11 +49,25 @@ class LaravelRouteParser
         $parameters = $this->parseParameters($route);
 
         return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
+            $routeName = $this->$this->addHeadToHeadMethodRouteName(
+                $laravelMethodName,
+                $route->getName() ?? ''
+            );
+
             return DefinedRoute::fromControllerAndPath($controller, $route->uri())
                 ->setMethodFromLaravelName($laravelMethodName)
                 ->setParameters($parameters)
-                ->setName($route->getName() ?? '');
+                ->setName($routeName);
         })->all();
+    }
+
+    private function addHeadToHeadMethodRouteName($methodName, $routeName)
+    {
+        if (strtolower($methodName) === 'head') {
+            return $routeName.'Head';
+        }
+
+        return $routeName;
     }
 
     private function parseControllerClassPath(Route $route): string
