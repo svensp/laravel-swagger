@@ -49,7 +49,7 @@ class LaravelRouteParser
         $parameters = $this->parseParameters($route);
 
         return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
-            $routeName = $this->$this->addHeadToHeadMethodRouteName(
+            $routeName = $this->addHeadToHeadMethodRouteName(
                 $laravelMethodName,
                 $route->getName() ?? ''
             );
