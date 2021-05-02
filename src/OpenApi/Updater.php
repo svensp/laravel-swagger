@@ -216,6 +216,10 @@ class Updater
         $basePath = $this->basePathFromRoute($route);
 
         foreach ($route->parameters as $index => $parameter) {
+            if (Arr::has($openApiSpecification, "$basePath.parameters.$index.\$ref")) {
+                continue;
+            }
+
             $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.name", $parameter->name);
             $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.in", 'path');
             $this->setIfNotPresent($openApiSpecification, "$basePath.parameters.$index.required", true);

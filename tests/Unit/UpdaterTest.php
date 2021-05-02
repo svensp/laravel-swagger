@@ -221,6 +221,62 @@ class UpdaterTest extends TestCase
 
     /**
      * @test
+     * @dataProvider apiDocPathMethods
+     * @param $apiDocPath
+     */
+    public function api_doc_doesnt_override_parameters_with_ref_set($apiDocPath, $laravelMethodName, $openApiMethodName)
+    {
+        $this->withRouteAndMatchingController($apiDocPath, function (DefinedRoute $route) use ($laravelMethodName) {
+            $route->controller = 'TestController';
+            $route->path = '/user/{user_id}';
+            $route->name = 'getUser';
+            $route->parameters = [
+                DefinedParameter::fromName('user_id')
+            ];
+            $route->setMethodFromLaravelName($laravelMethodName);
+        }, function (Controller $controller) {
+            $controller->tags = ['tag1','tag2','tag3'];
+        });
+        $this->updater->setRouteTemplate([
+            'summary' => 'TODO Summary',
+            'contentType' => 'application/json',
+            'responses' => [
+                200 => []
+            ],
+        ]);
+
+        $this->updateAndAssertResult($apiDocPath, [
+            'paths' => [
+                '/user/{user_id}' => [
+                    $openApiMethodName => [
+                        'parameters' => [
+                            [ '$ref' => '#/components/parameters/test' ]
+                        ]
+                    ]
+                ]
+            ]
+        ], function ($resultApiDoc) use ($openApiMethodName) {
+            $this->assertArrayNotHas(
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.description",
+                $resultApiDoc
+            );
+            $this->assertArrayNotHas(
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.name",
+                $resultApiDoc
+            );
+            $this->assertArrayNotHas(
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.in",
+                $resultApiDoc
+            );
+            $this->assertArrayNotHas(
+                "paths./user/{user_id}.{$openApiMethodName}.parameters.0.required",
+                $resultApiDoc
+            );
+        });
+    }
+
+    /**
+     * @test
      */
     public function ignores_routes_without_apidocs()
     {
