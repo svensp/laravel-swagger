@@ -36,7 +36,6 @@
         "illuminate/http": "^7.0|^8.0",
         "illuminate/console": "^7.0|^8.0",
         "illuminate/routing": "^7.0|^8.0",
-        "fzaninotto/faker": "^1.9",
         "symfony/yaml": "^5.2",
       "ext-json": "*"
     },
@@ -52,6 +51,7 @@
         "mockery/mockery": "^1.4",
         "orchestra/testbench": "^6.11",
         "hamcrest/hamcrest-php": "^2.0",
+        "fakerphp/faker": "^1.9",
         "squizlabs/php_codesniffer": "^3.5"
     }
 }
