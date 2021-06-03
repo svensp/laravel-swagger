@@ -17,6 +17,9 @@ class LaravelRouteParser
      */
     private Router $router;
 
+    private bool $ignoreHeadRoutes = false;
+
+
     public function __construct(Router $router)
     {
         $this->router = $router;
@@ -48,26 +51,39 @@ class LaravelRouteParser
         $controller = $this->parseControllerClassPath($route);
         $parameters = $this->parseParameters($route);
 
-        return collect($route->methods())->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
-            $routeName = $this->addHeadToHeadMethodRouteName(
-                $laravelMethodName,
-                $route->getName() ?? ''
-            );
+        return collect($route->methods())
+            ->filter(function ($laravelMethodName) {
+                if ($this->isHeadMethod($laravelMethodName) && $this->ignoreHeadRoutes) {
+                    return false;
+                }
 
-            return DefinedRoute::fromControllerAndPath($controller, $route->uri())
+                return true;
+            })
+            ->map(function ($laravelMethodName) use ($controller, $route, $parameters) {
+                $routeName = $this->addHeadToHeadMethodRouteName(
+                    $laravelMethodName,
+                    $route->getName() ?? ''
+                );
+
+                return DefinedRoute::fromControllerAndPath($controller, $route->uri())
                 ->setMethodFromLaravelName($laravelMethodName)
                 ->setParameters($parameters)
                 ->setName($routeName);
-        })->all();
+            })->all();
     }
 
     private function addHeadToHeadMethodRouteName($methodName, $routeName)
     {
-        if (strtolower($methodName) === 'head') {
+        if ($this->isHeadMethod($methodName)) {
             return $routeName.'Head';
         }
 
         return $routeName;
+    }
+
+    private function isHeadMethod($methodName)
+    {
+        return strtolower($methodName) === 'head';
     }
 
     private function parseControllerClassPath(Route $route): string
@@ -90,5 +106,15 @@ class LaravelRouteParser
         }
 
         return $parameters;
+    }
+
+    /**
+     * @param bool $ignoreHeadRoutes
+     * @return LaravelRouteParser
+     */
+    public function setIgnoreHeadRoutes(bool $ignoreHeadRoutes): LaravelRouteParser
+    {
+        $this->ignoreHeadRoutes = $ignoreHeadRoutes;
+        return $this;
     }
 }

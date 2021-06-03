@@ -14,6 +14,7 @@ use LaravelSwagger\Filesystem\FileSystemApiDocIO;
 use LaravelSwagger\Laravel\LaravelCache;
 use LaravelSwagger\Laravel\LaravelDoAfterRequestSent;
 use LaravelSwagger\Laravel\LaravelResponseBuilder;
+use LaravelSwagger\Laravel\LaravelRouteParser;
 use LaravelSwagger\OpenApi\ApiDocIO;
 use LaravelSwagger\OpenApi\ControllerParser;
 use LaravelSwagger\OpenApi\Updater;
@@ -38,6 +39,7 @@ class LaravelSwaggerProvider extends ServiceProvider
         $this->registerCommands();
         $this->registerPublishedFiles();
         $this->passConfigSettingsToUpdater();
+        $this->passConfigSettingsToRouteParser();
     }
 
     private function registerOpenApiRouteMacro(): void
@@ -95,6 +97,14 @@ class LaravelSwaggerProvider extends ServiceProvider
             foreach ($aliases as $alias => $path) {
                 $apiDoc->setAlias($alias, $path);
             }
+        });
+    }
+
+    private function passConfigSettingsToRouteParser()
+    {
+        $this->app->resolving(LaravelRouteParser::class, function (LaravelRouteParser $laravelRouteParser) {
+            $ignoreHeadRoutes = Config::get('open-api.ignore-head-routes', false);
+            $laravelRouteParser->setIgnoreHeadRoutes($ignoreHeadRoutes);
         });
     }
 }
