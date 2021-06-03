@@ -38,6 +38,11 @@ abstract class TestCase extends \Orchestra\Testbench\TestCase
         $this->assertTrue(Arr::has($array, $expectedKey), "Array does not have expected key $expectedKey");
     }
 
+    protected function assertArrayNotHas($expectedKey, $array)
+    {
+        $this->assertFalse(Arr::has($array, $expectedKey), "Array has unexpected key $expectedKey");
+    }
+
     protected function assertArrayEquals($expectedValue, $expectedKey, $array)
     {
         $this->assertEquals(
